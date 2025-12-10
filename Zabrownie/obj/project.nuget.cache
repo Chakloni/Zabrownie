@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "dgSpecHash": "D/RTG71O5os=",
+  "success": true,
+  "projectFilePath": "C:\\Users\\INFORMATICA\\Documents\\GitHub\\Zabrownie\\Zabrownie\\Zabrownie.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\INFORMATICA\\.nuget\\packages\\microsoft.web.webview2\\1.0.3650.58\\microsoft.web.webview2.1.0.3650.58.nupkg.sha512"
+  ],
+  "logs": []
+}

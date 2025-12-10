@@ -1,0 +1,65 @@
+<Window x:Class="Zabrownie.UI.SettingsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Browser Settings" Height="600" Width="500"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize">
+    <Grid Margin="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto">
+            <StackPanel>
+                <!-- Privacy Settings -->
+                <TextBlock Text="Privacy Settings" FontSize="18" FontWeight="Bold" Margin="0,0,0,12"/>
+                
+                <CheckBox x:Name="EnableAdBlockingCheckBox" Content="Enable Ad Blocking" Margin="0,0,0,8"/>
+                <CheckBox x:Name="StripTrackingParamsCheckBox" Content="Strip Tracking Parameters" Margin="0,0,0,8"/>
+                <CheckBox x:Name="BlockThirdPartyCookiesCheckBox" Content="Block Third-Party Cookies" Margin="0,0,0,8"/>
+                <CheckBox x:Name="ClearDataOnCloseCheckBox" Content="Clear Data on Close" Margin="0,0,0,16"/>
+
+                <!-- JavaScript Settings -->
+                <TextBlock Text="JavaScript" FontSize="18" FontWeight="Bold" Margin="0,0,0,12"/>
+                <CheckBox x:Name="EnableJavaScriptCheckBox" Content="Enable JavaScript (Global)" Margin="0,0,0,16"/>
+
+                <!-- Homepage -->
+                <TextBlock Text="Homepage" FontSize="18" FontWeight="Bold" Margin="0,0,0,12"/>
+                <TextBox x:Name="HomepageTextBox" Padding="8,4" Margin="0,0,0,16"/>
+
+                <!-- User Agent -->
+                <TextBlock Text="User Agent (Optional)" FontSize="18" FontWeight="Bold" Margin="0,0,0,12"/>
+                <TextBox x:Name="UserAgentTextBox" Padding="8,4" Margin="0,0,0,16" 
+                         TextWrapping="Wrap" Height="60"/>
+
+                <!-- Whitelist -->
+                <TextBlock Text="Whitelisted Domains" FontSize="18" FontWeight="Bold" Margin="0,0,0,12"/>
+                <Grid Margin="0,0,0,8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBox x:Name="WhitelistDomainTextBox" Grid.Column="0" Padding="8,4" Margin="0,0,8,0"/>
+                    <Button x:Name="AddWhitelistButton" Grid.Column="1" Content="Add" Width="60" Click="AddWhitelistButton_Click"/>
+                </Grid>
+                
+                <ListBox x:Name="WhitelistListBox" Height="120" Margin="0,0,0,8"/>
+                <Button x:Name="RemoveWhitelistButton" Content="Remove Selected" Width="120" 
+                        HorizontalAlignment="Left" Click="RemoveWhitelistButton_Click" Margin="0,0,0,16"/>
+
+                <!-- Filter Statistics -->
+                <TextBlock Text="Filter Statistics" FontSize="18" FontWeight="Bold" Margin="0,0,0,12"/>
+                <TextBlock x:Name="FilterStatsText" Margin="0,0,0,8"/>
+                <Button Content="Clear Decision Cache" Width="150" HorizontalAlignment="Left" 
+                        Click="ClearCacheButton_Click"/>
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- Action Buttons -->
+        <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,16,0,0">
+            <Button Content="Save" Width="80" Margin="0,0,8,0" Click="SaveButton_Click"/>
+            <Button Content="Cancel" Width="80" Click="CancelButton_Click"/>
+        </StackPanel>
+    </Grid>
+</Window>
