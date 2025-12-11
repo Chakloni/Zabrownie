@@ -246,4 +246,38 @@
             </Grid>
         </Border>
     </Grid>
+    <Window.InputBindings>
+        <KeyBinding Key="T" Modifiers="Ctrl" Command="{Binding NewTabCommand}" />
+        
+        <KeyBinding Key="W" Modifiers="Ctrl" Command="{Binding CloseTabCommand}" />
+        <KeyBinding Key="F4" Modifiers="Ctrl" Command="{Binding CloseTabCommand}" />
+        
+        <!-- Cambiar pestaña -->
+        <KeyBinding Gesture="Ctrl+Tab" Command="{Binding NextTabCommand}" />
+        <KeyBinding Gesture="Ctrl+PageDown" Command="{Binding NextTabCommand}" />
+        <KeyBinding Gesture="Ctrl+Shift+Tab" Command="{Binding PrevTabCommand}" />
+        <KeyBinding Gesture="Ctrl+PageUp" Command="{Binding PrevTabCommand}" />
+        
+        <!-- Reabrir pestaña cerrada -->
+        <KeyBinding Gesture="Ctrl+Shift+T" Command="{Binding ReopenClosedTabCommand}" />
+        
+        <!-- Foco en barra de direcciones -->
+        <KeyBinding Key="L" Modifiers="Ctrl" Command="{Binding FocusAddressBarCommand}" />
+        
+        <!-- Recargar -->
+        <KeyBinding Key="R" Modifiers="Ctrl" Command="{Binding ReloadCommand}" />
+        <KeyBinding Key="F5" Command="{Binding ReloadCommand}" />
+        
+        <!-- Navegación atrás / adelante -->
+        <KeyBinding Key="Left" Modifiers="Alt" Command="{Binding GoBackCommand}" />
+        <KeyBinding Key="Back" Command="{Binding GoBackCommand}" />
+        <KeyBinding Key="Right" Modifiers="Alt" Command="{Binding GoForwardCommand}" />
+        
+        <!-- Zoom -->
+        <KeyBinding Gesture="Ctrl+Add" Command="{Binding ZoomInCommand}" />
+        <KeyBinding Gesture="Ctrl+OemPlus" Command="{Binding ZoomInCommand}" />
+        <KeyBinding Gesture="Ctrl+Subtract" Command="{Binding ZoomOutCommand}" />
+        <KeyBinding Gesture="Ctrl+OemMinus" Command="{Binding ZoomOutCommand}" />
+        <KeyBinding Gesture="Ctrl+0" Command="{Binding ZoomResetCommand}" />
+    </Window.InputBindings>
 </Window>

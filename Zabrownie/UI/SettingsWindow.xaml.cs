@@ -56,9 +56,12 @@ namespace Zabrownie.UI
         {
             if (WhitelistListBox.SelectedItem != null)
             {
-                var domain = WhitelistListBox.SelectedItem.ToString();
-                _settingsManager.RemoveFromWhitelist(domain);
-                WhitelistListBox.Items.Remove(WhitelistListBox.SelectedItem);
+                var domain = WhitelistListBox.SelectedItem?.ToString();
+                if (!string.IsNullOrEmpty(domain))
+                {
+                    _settingsManager.RemoveFromWhitelist(domain);
+                    WhitelistListBox.Items.Remove(WhitelistListBox.SelectedItem);
+                }
             }
         }
 

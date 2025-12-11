@@ -10,6 +10,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Threading.Tasks;
+using System.Collections.Generic;
 
 namespace Zabrownie.UI
 {
@@ -22,10 +23,36 @@ namespace Zabrownie.UI
         private readonly WebViewFactory _webViewFactory;
         private CoreWebView2Environment? _webViewEnvironment;
 
+        public ICommand NewTabCommand { get; }
+        public ICommand CloseTabCommand { get; }
+        public ICommand NextTabCommand { get; }
+        public ICommand PrevTabCommand { get; }
+        public ICommand ReopenClosedTabCommand { get; }
+        public ICommand FocusAddressBarCommand { get; }
+        public ICommand ReloadCommand { get; }
+        public ICommand GoBackCommand { get; }
+        public ICommand GoForwardCommand { get; }
+        public ICommand ZoomInCommand { get; }
+        public ICommand ZoomOutCommand { get; }
+        public ICommand ZoomResetCommand { get; }
+
         public MainWindow()
         {
             InitializeComponent();
+            NewTabCommand = new RelayCommand(_ => CreateNewTabAsync().ConfigureAwait(false));
+            CloseTabCommand = new RelayCommand(_ => CloseCurrentTab());
+            NextTabCommand = new RelayCommand(_ => SwitchToNextTab());
+            PrevTabCommand = new RelayCommand(_ => SwitchToPrevTab());
+            ReopenClosedTabCommand = new RelayCommand(_ => ReopenLastClosedTab());
+            FocusAddressBarCommand = new RelayCommand(_ => AddressBar.Focus());
+            ReloadCommand = new RelayCommand(_ => ReloadButton_Click(null!, null!));
+            GoBackCommand = new RelayCommand(_ => BackButton_Click(null!, null!));
+            GoForwardCommand = new RelayCommand(_ => ForwardButton_Click(null!, null!));
+            ZoomInCommand = new RelayCommand(_ => ChangeZoom(0.25));
+            ZoomOutCommand = new RelayCommand(_ => ChangeZoom(-0.25));
+            ZoomResetCommand = new RelayCommand(_ => ChangeZoom(0, true));
 
+            DataContext = this;
             _settingsManager = new SettingsManager();
             _filterEngine = new FilterEngine();
             _tabManager = new TabManager();
@@ -336,10 +363,7 @@ namespace Zabrownie.UI
         private void ReloadButton_Click(object sender, RoutedEventArgs e)
         {
             if (_tabManager.ActiveTab?.WebView?.CoreWebView2 != null)
-            {
                 _tabManager.ActiveTab.WebView.Reload();
-                LoggingService.Log("Page reloaded");
-            }
         }
 
         private void GoButton_Click(object sender, RoutedEventArgs e)
@@ -572,6 +596,91 @@ namespace Zabrownie.UI
         private void Close_Click(object sender, RoutedEventArgs e)
         {
             Close();
+        }
+
+        private async void CloseCurrentTab()
+        {
+            if (_tabManager.ActiveTab != null)
+    {
+                var tabToClose = _tabManager.ActiveTab;
+                _closedTabs.Push(tabToClose); // Guardamos para reabrir
+                _tabManager.CloseTab(tabToClose);
+                
+                if (_tabManager.Tabs.Count == 0)
+                {
+                    await CreateNewTabAsync();
+                }
+                else if (_tabManager.ActiveTab != null)
+                {
+                    ShowTab(_tabManager.ActiveTab);
+                }
+            }
+        }
+
+        private void SwitchToNextTab()
+        {
+            if (_tabManager.Tabs.Count <= 1 || _tabManager.ActiveTab is not { } activeTab) return;
+
+            int index = _tabManager.Tabs.IndexOf(activeTab);
+            int nextIndex = (index + 1) % _tabManager.Tabs.Count;
+            ShowTab(_tabManager.Tabs[nextIndex]);
+        }
+
+        private void SwitchToPrevTab()
+        {
+            if (_tabManager.Tabs.Count <= 1 || _tabManager.ActiveTab is not { } activeTab) return;
+
+            int index = _tabManager.Tabs.IndexOf(activeTab);
+            int prevIndex = (index - 1 + _tabManager.Tabs.Count) % _tabManager.Tabs.Count;
+            ShowTab(_tabManager.Tabs[prevIndex]);
+        }
+
+        private Stack<BrowserTab> _closedTabs = new();
+
+        private async void ReopenLastClosedTab()
+        {
+            if (_closedTabs.TryPop(out var tab))
+            {
+                _tabManager.Tabs.Add(tab);
+                ShowTab(tab);
+                if (tab.WebView?.CoreWebView2 != null)
+                {
+                    // Re-navigate to last URL
+                    tab.WebView.CoreWebView2.Navigate(tab.Url ?? "https://www.google.com");
+                }
+                else
+                {
+                    // Si el WebView se destruyó, recrear
+                    await CreateNewTabAsync(tab.Url);
+                }
+            }
+        }
+
+        private void ChangeZoom(double delta, bool reset = false)
+        {
+            var webView = _tabManager.ActiveTab?.WebView;
+            if (webView?.CoreWebView2 == null) return;
+
+            // En versiones nuevas, ZoomFactor está en el WebView2 WPF directamente
+            if (reset)
+                webView.ZoomFactor = 1.0;
+            else
+                webView.ZoomFactor = Math.Clamp(webView.ZoomFactor + delta, 0.25, 5.0);
+        }
+
+        public class RelayCommand : ICommand
+        {
+            private readonly Action<object?> _execute;
+            public RelayCommand(Action<object?> execute) => _execute = execute ?? throw new ArgumentNullException(nameof(execute));
+
+            public bool CanExecute(object? parameter) => true;
+            public void Execute(object? parameter) => _execute(parameter);
+
+            public event EventHandler? CanExecuteChanged
+            {
+                add { }
+                remove { }
+            }
         }
     }
 }
