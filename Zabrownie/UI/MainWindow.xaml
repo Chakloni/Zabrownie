@@ -64,64 +64,106 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <!-- Tab Bar -->
-        <Border Grid.Row="0" Background="#F5F5F5" BorderBrush="#D0D0D0" BorderThickness="0,0,0,1">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
-                
-                <ScrollViewer Grid.Column="0" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
-                    <ItemsControl x:Name="TabsControl" ItemsSource="{Binding}">
-                        <ItemsControl.ItemsPanel>
-                            <ItemsPanelTemplate>
-                                <StackPanel Orientation="Horizontal"/>
-                            </ItemsPanelTemplate>
-                        </ItemsControl.ItemsPanel>
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate>
-                                <Button Style="{StaticResource TabButtonStyle}" 
-                                        Click="Tab_Click" Tag="{Binding}">
-                                    <Grid>
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*"/>
-                                            <ColumnDefinition Width="Auto"/>
-                                        </Grid.ColumnDefinitions>
-                                        <TextBlock Grid.Column="0" Text="{Binding Title}" 
-                                                   MaxWidth="150" TextTrimming="CharacterEllipsis"
-                                                   VerticalAlignment="Center" Margin="0,0,8,0"/>
-                                        <Button Grid.Column="1" Content="✕" Width="16" Height="Auto"
-                                                FontSize="10" Padding="0" 
-                                                Click="CloseTab_Click" Tag="{Binding}"
-                                                Background="Transparent" BorderThickness="0"/>
-                                    </Grid>
-                                </Button>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-                </ScrollViewer>
-                
-                <Button Grid.Column="1" Content="+" Width="30" Height="Auto" 
-                        Margin="4" Click="NewTab_Click" FontWeight="Bold"/>
-                
-                <StackPanel Grid.Column="2"
-                            Orientation="Horizontal"
-                            HorizontalAlignment="Right">
-                    
-                    <Button Width="45" Content="—" Click="Minimize_Click"
-                            Background="Transparent" BorderThickness="0"/>
+        <!-- Tab Bar - TODA LA BARRA ES ARRASTRABLE (excepto donde digamos lo contrario) -->
+<Border Grid.Row="0" 
+        Background="#F5F5F5" 
+        BorderBrush="#D0D0D0" 
+        BorderThickness="0,0,0,1"
+        MouseLeftButtonDown="TitleBar_MouseLeftButtonDown"
+        IsHitTestVisible="True">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="Auto"/>
+        </Grid.ColumnDefinitions>
 
-                    <Button Width="45" Content="▢" Click="Maximize_Click"
-                            Background="Transparent" BorderThickness="0"/>
+        <!-- Logo/Título - SÍ permite arrastrar -->
+        <TextBlock Grid.Column="0" 
+                   Text="Zabrownie" 
+                   VerticalAlignment="Center" 
+                   Margin="12,8,16,8" 
+                   FontWeight="Bold" 
+                   FontSize="14"
+                   MouseLeftButtonDown="TitleBar_MouseLeftButtonDown"/>
 
-                    <Button Width="45" Content="✕" Click="Close_Click"
-                            Background="Transparent"
-                            BorderThickness="0"/>
-                </StackPanel>
-            </Grid>
+        <!-- Área de pestañas - NO permite arrastrar cuando haces clic en una pestaña o botón -->
+        <Border Grid.Column="1" 
+                Background="Transparent"
+                MouseLeftButtonDown="StopDrag">
+            <ScrollViewer HorizontalScrollBarVisibility="Auto" 
+                          VerticalScrollBarVisibility="Disabled">
+                <ItemsControl x:Name="TabsControl" ItemsSource="{Binding}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <StackPanel Orientation="Horizontal"/>
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Button Style="{StaticResource TabButtonStyle}" 
+                                    Click="Tab_Click" 
+                                    Tag="{Binding}"
+                                    MouseLeftButtonDown="StopDrag">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" 
+                                               Text="{Binding Title}" 
+                                               MaxWidth="150" 
+                                               TextTrimming="CharacterEllipsis"
+                                               VerticalAlignment="Center" 
+                                               Margin="0,0,8,0"/>
+                                    <Button Grid.Column="1" 
+                                            Content="x" 
+                                            Width="16" 
+                                            Height="Auto"
+                                            FontSize="10" 
+                                            Padding="0" 
+                                            Click="CloseTab_Click" 
+                                            Tag="{Binding}"
+                                            Background="Transparent" 
+                                            BorderThickness="0"
+                                            MouseLeftButtonDown="StopDrag"/>
+                                </Grid>
+                            </Button>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
         </Border>
+
+        <!-- Botón Nueva Pestaña - NO permite arrastrar -->
+        <Button Grid.Column="2" 
+                Content="+" 
+                Width="30" 
+                Height="Auto" 
+                Margin="4" 
+                Click="NewTab_Click" 
+                FontWeight="Bold"
+                MouseLeftButtonDown="StopDrag"/>
+
+        <!-- Controles de ventana - NO permiten arrastrar -->
+        <StackPanel Grid.Column="3"
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Right"
+                    MouseLeftButtonDown="StopDrag">
+            <Button Width="45" Content="—" Click="Minimize_Click"
+                    Background="Transparent" BorderThickness="0"
+                    MouseLeftButtonDown="StopDrag"/>
+            <Button Width="45" Content="▢" Click="Maximize_Click"
+                    Background="Transparent" BorderThickness="0"
+                    MouseLeftButtonDown="StopDrag"/>
+            <Button Width="45" Content="✕" Click="Close_Click"
+                    Background="Transparent" BorderThickness="0"
+                    Foreground="#D32F2F"
+                    MouseLeftButtonDown="StopDrag"/>
+        </StackPanel>
+    </Grid>
+</Border>
 
         <!-- Navigation Bar -->
         <Border Grid.Row="1" Background="#F0F0F0" Padding="8">
@@ -137,20 +179,24 @@
                 </Grid.ColumnDefinitions>
 
                 <Button Grid.Column="0" Content="◄" Width="40" Margin="0,0,4,0" 
-                        Click="BackButton_Click" x:Name="BackButton"/>
+                        Click="BackButton_Click" x:Name="BackButton" ToolTip="Atrás"/>
                 <Button Grid.Column="1" Content="►" Width="40" Margin="0,0,4,0" 
-                        Click="ForwardButton_Click" x:Name="ForwardButton"/>
+                        Click="ForwardButton_Click" x:Name="ForwardButton" ToolTip="Adelante"/>
                 <Button Grid.Column="2" Content="⟳" Width="40" Margin="0,0,8,0" 
-                        Click="ReloadButton_Click"/>
+                        Click="ReloadButton_Click" ToolTip="Recargar"/>
                 
                 <TextBox Grid.Column="3" x:Name="AddressBar" VerticalContentAlignment="Center" 
-                         Padding="8,4" FontSize="14" KeyDown="AddressBar_KeyDown"/>
+                         Padding="8,4" FontSize="14" KeyDown="AddressBar_KeyDown"
+                         GotFocus="AddressBar_GotFocus"
+                         Text="Escribe URL o busca..."/>
                 
-                <Button Grid.Column="4" Content="Go" Width="60" Margin="8,0,8,0" 
+                <Button Grid.Column="4" Content="Ir" Width="60" Margin="8,0,8,0" 
                         Click="GoButton_Click"/>
                 <Button Grid.Column="5" x:Name="BookmarkButton" Content="☆" Width="40" 
-                        Margin="0,0,4,0" Click="BookmarkButton_Click" FontSize="18"/>
-                <Button Grid.Column="6" Content="⚙" Width="40" Click="SettingsButton_Click"/>
+                        Margin="0,0,4,0" Click="BookmarkButton_Click" FontSize="18"
+                        ToolTip="Marcar esta página"/>
+                <Button Grid.Column="6" Content="⚙" Width="40" Click="SettingsButton_Click"
+                        ToolTip="Configuración"/>
             </Grid>
         </Border>
 
@@ -196,7 +242,7 @@
                 <TextBlock Grid.Column="0" x:Name="StatusText" VerticalAlignment="Center"/>
                 <TextBlock Grid.Column="1" x:Name="BlockedCountText" VerticalAlignment="Center" 
                            FontWeight="Bold" Foreground="#D32F2F" Margin="0,0,16,0"/>
-                <Button Grid.Column="2" Content="Manage Bookmarks" Click="ManageBookmarks_Click"/>
+                <Button Grid.Column="2" Content="Gestionar Marcadores" Click="ManageBookmarks_Click"/>
             </Grid>
         </Border>
     </Grid>
