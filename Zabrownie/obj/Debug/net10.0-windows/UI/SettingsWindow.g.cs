@@ -163,7 +163,7 @@ namespace Zabrownie.UI {
                 return;
             }
             _contentLoaded = true;
-            System.Uri resourceLocater = new System.Uri("/Zabrownie;component/ui/settingswindow.xaml", System.UriKind.Relative);
+            System.Uri resourceLocater = new System.Uri("/Zabrownie;V1.0.0.0;component/ui/settingswindow.xaml", System.UriKind.Relative);
             
             #line 1 "..\..\..\..\UI\SettingsWindow.xaml"
             System.Windows.Application.LoadComponent(this, resourceLocater);
