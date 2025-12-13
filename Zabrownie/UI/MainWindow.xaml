@@ -12,6 +12,40 @@
         Background="Transparent"
         ResizeMode="CanResize">
 
+    <Window.InputBindings>
+        <KeyBinding Key="T"
+                    Modifiers="Control"
+                    Command="{Binding NewTabCommand}"/>
+
+        <KeyBinding Key="W"
+                    Modifiers="Control"
+                    Command="{Binding CloseTabCommand}"/>
+
+        <KeyBinding Key="Tab"
+                    Modifiers="Control"
+                    Command="{Binding NextTabCommand}"/>
+
+        <KeyBinding Key="Tab"
+                    Modifiers="Control+Shift"
+                    Command="{Binding PrevTabCommand}"/>
+
+        <KeyBinding Key="L"
+                    Modifiers="Control"
+                    Command="{Binding FocusAddressBarCommand}"/>
+
+        <KeyBinding Key="Add"
+                    Modifiers="Control"
+                    Command="{Binding ZoomInCommand}"/>
+
+        <KeyBinding Key="Subtract"
+                    Modifiers="Control"
+                    Command="{Binding ZoomOutCommand}"/>
+
+        <KeyBinding Key="D0"
+                    Modifiers="Control"
+                    Command="{Binding ZoomResetCommand}"/>
+    </Window.InputBindings>
+
     <Window.Resources>
         <!-- Colores principales -->
         <SolidColorBrush x:Key="BgPrimary"
@@ -120,7 +154,6 @@
                 </Setter.Value>
             </Setter>
         </Style>
-
 
         <!-- Estilo para tabs -->
         <Style x:Key="TabButtonStyle"
@@ -333,7 +366,7 @@
                     <!-- Tabs -->
                     <Border Grid.Column="1"
                             MouseLeftButtonDown="StopDrag">
-                        <ScrollViewer 
+                        <ScrollViewer
                             Style="{StaticResource OperaGXScrollViewer}"
                             HorizontalScrollBarVisibility="Auto"
                             VerticalScrollBarVisibility="Disabled">
@@ -579,37 +612,257 @@
                 </ScrollViewer>
             </Border>
 
-            <!-- Contenedor del WebView con notificación -->
-            <Grid Grid.Row="3"
-                  Background="{StaticResource BgPrimary}">
-                <Grid x:Name="WebViewContainer"/>
+            <!-- Main Content Area: Homepage OR WebView -->
+            <Grid Grid.Row="3" Background="{StaticResource BgPrimary}">
+                <!-- Homepage Container (shown when no page is loaded) -->
+                <Grid x:Name="HomepageGrid"
+                      Background="{StaticResource BgPrimary}">
 
-                <!-- Notificación flotante -->
-                <Border x:Name="StatusNotification"
-                        Background="{StaticResource BgSecondary}"
-                        BorderBrush="{DynamicResource AccentColor}"
-                        BorderThickness="1"
-                        CornerRadius="8"
-                        Padding="12,8"
-                        Margin="16"
-                        HorizontalAlignment="Left"
-                        VerticalAlignment="Bottom"
-                        Visibility="Collapsed">
-                    <Border.Effect>
-                        <DropShadowEffect Color="Black"
-                                          Direction="270"
-                                          ShadowDepth="0"
-                                          BlurRadius="10"
-                                          Opacity="0.5"/>
-                    </Border.Effect>
-                    <StackPanel Orientation="Horizontal">
-                        <TextBlock x:Name="StatusText"
-                                   Foreground="{StaticResource TextPrimary}"
-                                   FontSize="12"
-                                   VerticalAlignment="Center"/>
-                    </StackPanel>
-                </Border>
+                    <!-- Main Homepage Content -->
+                    <ScrollViewer Style="{StaticResource OperaGXScrollViewer}"
+                                  VerticalScrollBarVisibility="Auto">
+                        <StackPanel Margin="0,40,0,0">
+
+                            <!-- Personal Greeting Section -->
+                            <StackPanel HorizontalAlignment="Center"
+                                        Margin="0,0,0,40">
+                                <TextBlock Text="Welcome to"
+                                           FontSize="16"
+                                           Foreground="{StaticResource TextSecondary}"
+                                           HorizontalAlignment="Center"/>
+
+                                <TextBlock Text="Zabrownie"
+                                           FontSize="48"
+                                           FontWeight="Bold"
+                                           Foreground="{DynamicResource AccentColor}"
+                                           HorizontalAlignment="Center"
+                                           Margin="0,8,0,16"/>
+
+                                <!-- Personalized Message - You can customize this -->
+                                <TextBlock x:Name="PersonalGreeting"
+                                           Text="Your personal browsing experience ❤️"
+                                           FontSize="18"
+                                           Foreground="{StaticResource TextPrimary}"
+                                           HorizontalAlignment="Center"
+                                           Opacity="0.9"/>
+                            </StackPanel>
+
+                            <!-- Search Box (Center Stage) -->
+                            <Border Background="{StaticResource BgSecondary}"
+                                    CornerRadius="12"
+                                    BorderBrush="{StaticResource BorderColor}"
+                                    BorderThickness="1"
+                                    Width="600"
+                                    Height="55"
+                                    HorizontalAlignment="Center"
+                                    Margin="0,0,0,40">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <TextBlock Text="🔍"
+                                               FontSize="18"
+                                               VerticalAlignment="Center"
+                                               Margin="16,0,12,0"
+                                               Foreground="{StaticResource TextSecondary}"/>
+
+                                    <TextBox x:Name="HomepageSearchBox"
+                                             Grid.Column="1"
+                                             Text="Search or enter address..."
+                                             Foreground="{StaticResource TextPrimary}"
+                                             Background="Transparent"
+                                             BorderThickness="0"
+                                             FontSize="14"
+                                             VerticalContentAlignment="Center"
+                                             KeyDown="HomepageSearchBox_KeyDown"
+                                             GotFocus="HomepageSearchBox_GotFocus"
+                                             LostFocus="HomepageSearchBox_LostFocus"/>
+
+                                    <Button Grid.Column="2"
+                                            Content="Go"
+                                            Style="{StaticResource ActionButtonStyle}"
+                                            Margin="8"
+                                            Click="HomepageSearchButton_Click"/>
+                                </Grid>
+                            </Border>
+
+                            <!-- Quick Links Section -->
+                            <StackPanel HorizontalAlignment="Center"
+                                        Width="600"
+                                        Margin="0,0,0,40">
+                                <TextBlock Text="Quick Links"
+                                           FontSize="20"
+                                           FontWeight="SemiBold"
+                                           Foreground="{StaticResource TextPrimary}"
+                                           Margin="0,0,0,16"/>
+
+                                <WrapPanel Orientation="Horizontal"
+                                           HorizontalAlignment="Center">
+                                    <!-- Default Quick Links - You can customize these -->
+                                    <Button Content="YouTube"
+                                            Style="{StaticResource NavButtonStyle}"
+                                            Click="QuickLink_Click"
+                                            Tag="https://youtube.com"
+                                            Margin="4"
+                                            Padding="16,10"
+                                            Width="120"/>
+
+                                    <Button Content="Netflix"
+                                            Style="{StaticResource NavButtonStyle}"
+                                            Click="QuickLink_Click"
+                                            Tag="https://netflix.com"
+                                            Margin="4"
+                                            Padding="16,10"
+                                            Width="120"/>
+
+                                    <Button Content="Spotify"
+                                            Style="{StaticResource NavButtonStyle}"
+                                            Click="QuickLink_Click"
+                                            Tag="https://spotify.com"
+                                            Margin="4"
+                                            Padding="16,10"
+                                            Width="120"/>
+
+                                    <Button Content="Gmail"
+                                            Style="{StaticResource NavButtonStyle}"
+                                            Click="QuickLink_Click"
+                                            Tag="https://gmail.com"
+                                            Margin="4"
+                                            Padding="16,10"
+                                            Width="120"/>
+
+                                    <Button Content="GitHub"
+                                            Style="{StaticResource NavButtonStyle}"
+                                            Click="QuickLink_Click"
+                                            Tag="https://github.com"
+                                            Margin="4"
+                                            Padding="16,10"
+                                            Width="120"/>
+
+                                    <Button Content="Reddit"
+                                            Style="{StaticResource NavButtonStyle}"
+                                            Click="QuickLink_Click"
+                                            Tag="https://reddit.com"
+                                            Margin="4"
+                                            Padding="16,10"
+                                            Width="120"/>
+                                </WrapPanel>
+
+                                <!-- Add Custom Link Button -->
+                                <Button Content="+ Add Custom Link"
+                                        Style="{StaticResource NavButtonStyle}"
+                                        Click="AddCustomLink_Click"
+                                        Margin="0,16,0,0"
+                                        HorizontalAlignment="Center"
+                                        Padding="12,8"/>
+                            </StackPanel>
+
+                            <!-- Recently Visited (Optional) -->
+                            <Border Background="{StaticResource BgSecondary}"
+                                    CornerRadius="12"
+                                    Padding="20"
+                                    Width="600"
+                                    HorizontalAlignment="Center">
+                                <StackPanel>
+                                    <TextBlock Text="Recently Visited"
+                                               FontSize="16"
+                                               FontWeight="SemiBold"
+                                               Foreground="{StaticResource TextPrimary}"
+                                               Margin="0,0,0,12"/>
+
+                                    <ItemsControl x:Name="RecentSitesControl">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Button Content="{Binding Title}"
+                                                        Style="{StaticResource NavButtonStyle}"
+                                                        Click="RecentSite_Click"
+                                                        Tag="{Binding Url}"
+                                                        Margin="0,4"
+                                                        HorizontalContentAlignment="Left"
+                                                        Padding="12,8"/>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+
+                                    <TextBlock x:Name="NoRecentSitesText"
+                                               Text="No recent sites yet. Start browsing!"
+                                               Foreground="{StaticResource TextSecondary}"
+                                               FontStyle="Italic"
+                                               HorizontalAlignment="Center"
+                                               Margin="0,12,0,0"/>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Time/Date Widget -->
+                            <Border Background="{StaticResource BgSecondary}"
+                                    CornerRadius="12"
+                                    Padding="20"
+                                    Width="600"
+                                    HorizontalAlignment="Center"
+                                    Margin="0,20,0,0">
+                                <StackPanel Orientation="Horizontal"
+                                            HorizontalAlignment="Center">
+                                    <TextBlock x:Name="TimeText"
+                                               Text=""
+                                               FontSize="32"
+                                               FontWeight="Bold"
+                                               Foreground="{DynamicResource AccentColor}"
+                                               VerticalAlignment="Center"/>
+
+                                    <StackPanel Margin="20,0,0,0"
+                                                VerticalAlignment="Center">
+                                        <TextBlock x:Name="DateText"
+                                                   Text=""
+                                                   FontSize="14"
+                                                   Foreground="{StaticResource TextPrimary}"/>
+
+                                        <TextBlock x:Name="DayText"
+                                                   Text=""
+                                                   FontSize="12"
+                                                   Foreground="{StaticResource TextSecondary}"
+                                                   Margin="0,4,0,0"/>
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </ScrollViewer>
+                </Grid>
+
+                <!-- WebView Container (shown when browsing) -->
+                <Grid x:Name="WebViewContainerGrid">
+                    <Grid x:Name="WebViewContainer"/>
+
+                    <!-- Floating Notification -->
+                    <Border x:Name="StatusNotification"
+                            Background="{StaticResource BgSecondary}"
+                            BorderBrush="{DynamicResource AccentColor}"
+                            BorderThickness="1"
+                            CornerRadius="8"
+                            Padding="12,8"
+                            Margin="16"
+                            HorizontalAlignment="Left"
+                            VerticalAlignment="Bottom"
+                            Visibility="Collapsed">
+                        <Border.Effect>
+                            <DropShadowEffect Color="Black"
+                                              Direction="270"
+                                              ShadowDepth="0"
+                                              BlurRadius="10"
+                                              Opacity="0.5"/>
+                        </Border.Effect>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock x:Name="StatusText"
+                                       Foreground="{StaticResource TextPrimary}"
+                                       FontSize="12"
+                                       VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Border>
+                </Grid>
             </Grid>
+            
             <Rectangle
                 HorizontalAlignment="Right"
                 VerticalAlignment="Bottom"

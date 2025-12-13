@@ -10,11 +10,11 @@ none
 false
 TRACE;DEBUG;NET;NET10_0;NETCOREAPP;WINDOWS;WINDOWS7_0;NET5_0_OR_GREATER;NET6_0_OR_GREATER;NET7_0_OR_GREATER;NET8_0_OR_GREATER;NET9_0_OR_GREATER;NET10_0_OR_GREATER;NETCOREAPP3_0_OR_GREATER;NETCOREAPP3_1_OR_GREATER;WINDOWS7_0_OR_GREATER
 C:\Users\edgar\Documents\palCredito\interfaz\Zabrownie\Zabrownie\App.xaml
-5114836291
+6690795197
 3-1739997676
-20-998855018
+21857064683
 222-1931633993
-MainWindow.xaml;UI\BookmarksWindow.xaml;UI\EditBookmarkDialog.xaml;UI\MainWindow.xaml;UI\SettingsWindow.xaml;
+MainWindow.xaml;UI\BookmarksWindow.xaml;UI\CustomLinkWindow.xaml;UI\EditBookmarkDialog.xaml;UI\MainWindow.xaml;UI\SettingsWindow.xaml;
 
 False
 

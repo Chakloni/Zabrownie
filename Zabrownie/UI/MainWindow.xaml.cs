@@ -13,6 +13,8 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Windows.Interop;
 using System.Runtime.InteropServices;
+using System.Windows.Threading;
+using System.Windows.Media;
 
 namespace Zabrownie.UI
 {
@@ -24,6 +26,12 @@ namespace Zabrownie.UI
         private readonly BookmarkManager _bookmarkManager;
         private readonly WebViewFactory _webViewFactory;
         private CoreWebView2Environment? _webViewEnvironment;
+
+        // Homepage-related fields
+        private List<QuickLink> _quickLinks = new();
+        private List<RecentSite> _recentSites = new();
+        private DispatcherTimer? _clockTimer; // Made nullable
+        private Stack<BrowserTab> _closedTabs = new();
 
         public ICommand NewTabCommand { get; }
         public ICommand CloseTabCommand { get; }
@@ -90,11 +98,13 @@ namespace Zabrownie.UI
                 _webViewEnvironment = await CoreWebView2Environment.CreateAsync(
                     null, userDataFolder);
 
-
                 LoggingService.Log("WebView2 Environment initialized successfully");
 
-                // Create initial tab
-                await CreateNewTabAsync(_settingsManager.Settings.Homepage ?? "https://www.google.com");
+                // Initialize homepage
+                InitializeHomepage();
+
+                // Create initial tab - use "homepage" to show the homepage
+                await CreateNewTabAsync(_settingsManager.Settings.Homepage ?? "homepage");
             }
             catch (Exception ex)
             {
@@ -136,7 +146,7 @@ namespace Zabrownie.UI
             await _filterEngine.LoadFiltersAsync(filtersPath);
         }
 
-        private async System.Threading.Tasks.Task CreateNewTabAsync(string url = "about:blank")
+        private async System.Threading.Tasks.Task CreateNewTabAsync(string url = "homepage")
         {
             try
             {
@@ -183,14 +193,23 @@ namespace Zabrownie.UI
                 // Show this tab
                 ShowTab(tab);
 
-                // Navigate if URL provided
-                if (!string.IsNullOrWhiteSpace(url) && url != "about:blank")
+                // Show homepage if URL is "homepage" or about:blank
+                if (url == "homepage" || url == "about:blank")
                 {
-                    // Pequeño retraso opcional para estabilidad visual
-                    await Task.Delay(100);
-                    webView.CoreWebView2.Navigate(url);
-                    tab.Url = url;
-                    AddressBar.Text = url;
+                    ShowHomepage(true);
+                }
+                else
+                {
+                    // Navigate if URL provided
+                    if (!string.IsNullOrWhiteSpace(url) && url != "about:blank")
+                    {
+                        // Small optional delay for visual stability
+                        await Task.Delay(100);
+                        webView.CoreWebView2.Navigate(url);
+                        tab.Url = url;
+                        AddressBar.Text = url;
+                        ShowHomepage(false);
+                    }
                 }
 
                 LoggingService.Log("Tab created successfully");
@@ -216,7 +235,7 @@ namespace Zabrownie.UI
                 WebViewContainer.Children.Add(tab.WebView);
 
                 // Update address bar
-                if (string.IsNullOrWhiteSpace(tab.Url) || tab.Url == "about:blank")
+                if (string.IsNullOrWhiteSpace(tab.Url) || tab.Url == "about:blank" || tab.Url == "homepage")
                 {
                     AddressBar.Text = "Escribe URL o busca...";
                 }
@@ -226,7 +245,6 @@ namespace Zabrownie.UI
                 }
 
                 UpdateNavigationButtons();
-                //UpdateBlockedCount(tab);
                 UpdateBookmarkButton();
             }
         }
@@ -236,7 +254,7 @@ namespace Zabrownie.UI
             var webView = _tabManager.ActiveTab?.WebView;
             if (webView?.CoreWebView2 == null)
             {
-                // En lugar de fallar, reintentar en 500ms
+                // Instead of failing, retry in 500ms
                 Dispatcher.InvokeAsync(async () =>
                 {
                     await Task.Delay(500);
@@ -272,7 +290,8 @@ namespace Zabrownie.UI
                 if (!url.StartsWith("http://") &&
                     !url.StartsWith("https://") &&
                     !url.StartsWith("file://") &&
-                    url != "about:blank")
+                    url != "about:blank" &&
+                    url != "homepage")
                 {
                     // Check if it's a search query
                     if (url.Contains(" ") || (!url.Contains(".") && !url.Contains(":")))
@@ -303,6 +322,9 @@ namespace Zabrownie.UI
 
                 StatusText.Text = $"Navegando a {finalUrl}...";
 
+                // Hide homepage when navigating
+                ShowHomepage(false);
+
                 LoggingService.Log($"Navigation command sent successfully");
             }
             catch (Exception ex)
@@ -319,12 +341,22 @@ namespace Zabrownie.UI
             if (sender is Button button && button.Tag is BrowserTab tab)
             {
                 ShowTab(tab);
+                
+                // Show/hide homepage based on current tab's URL
+                if (tab.Url == "homepage" || tab.Url == "about:blank" || string.IsNullOrWhiteSpace(tab.Url))
+                {
+                    ShowHomepage(true);
+                }
+                else
+                {
+                    ShowHomepage(false);
+                }
             }
         }
 
         private async void NewTab_Click(object sender, RoutedEventArgs e)
         {
-            await CreateNewTabAsync();
+            await CreateNewTabAsync("homepage"); // Show homepage on new tab
         }
 
         private void CloseTab_Click(object sender, RoutedEventArgs e)
@@ -337,6 +369,16 @@ namespace Zabrownie.UI
                 if (_tabManager.ActiveTab != null)
                 {
                     ShowTab(_tabManager.ActiveTab);
+                    
+                    // Show/hide homepage based on active tab's URL
+                    if (_tabManager.ActiveTab.Url == "homepage" || _tabManager.ActiveTab.Url == "about:blank" || string.IsNullOrWhiteSpace(_tabManager.ActiveTab.Url))
+                    {
+                        ShowHomepage(true);
+                    }
+                    else
+                    {
+                        ShowHomepage(false);
+                    }
                 }
                 else if (_tabManager.Tabs.Count > 0)
                 {
@@ -425,7 +467,6 @@ namespace Zabrownie.UI
                         new Exception(e.WebErrorStatus.ToString()));
                 }
                 UpdateNavigationButtons();
-                //UpdateBlockedCount(tab);
             }
 
             // Update title
@@ -434,6 +475,12 @@ namespace Zabrownie.UI
                 var title = tab.WebView.CoreWebView2.DocumentTitle;
                 tab.Title = string.IsNullOrEmpty(title) ? "Nueva Pestaña" : title;
                 LoggingService.Log($"Tab title updated: {tab.Title}");
+                
+                // Add to recent sites
+                if (e.IsSuccess && !string.IsNullOrEmpty(tab.Url) && tab.Url != "about:blank" && tab.Url != "homepage")
+                {
+                    AddToRecentSites(tab.Title, tab.Url);
+                }
             }
         }
 
@@ -448,6 +495,16 @@ namespace Zabrownie.UI
             {
                 AddressBar.Text = url;
                 UpdateBookmarkButton();
+                
+                // Show/hide homepage based on URL
+                if (url == "about:blank" || url == "homepage" || string.IsNullOrWhiteSpace(url))
+                {
+                    ShowHomepage(true);
+                }
+                else
+                {
+                    ShowHomepage(false);
+                }
             }
         }
 
@@ -456,11 +513,6 @@ namespace Zabrownie.UI
             BackButton.IsEnabled = _tabManager.ActiveTab?.WebView?.CanGoBack ?? false;
             ForwardButton.IsEnabled = _tabManager.ActiveTab?.WebView?.CanGoForward ?? false;
         }
-
-        /* private void UpdateBlockedCount(BrowserTab tab)
-        {
-            //BlockedCountText.Text = $"Bloqueados: {tab.BlockedCount}";
-        } */
 
         private void UpdateBookmarkButton()
         {
@@ -474,7 +526,7 @@ namespace Zabrownie.UI
             var currentUrl = _tabManager.ActiveTab?.Url ?? "";
             var currentTitle = _tabManager.ActiveTab?.Title ?? "Nueva Pestaña";
 
-            if (string.IsNullOrWhiteSpace(currentUrl) || currentUrl == "about:blank")
+            if (string.IsNullOrWhiteSpace(currentUrl) || currentUrl == "about:blank" || currentUrl == "homepage")
             {
                 MessageBox.Show("No se puede marcar esta página.", "Marcador",
                     MessageBoxButton.OK, MessageBoxImage.Information);
@@ -558,6 +610,207 @@ namespace Zabrownie.UI
             }
 
             _tabManager.CloseAllTabs();
+            
+            // Stop the clock timer
+            if (_clockTimer != null)
+            {
+                _clockTimer.Stop();
+            }
+        }
+
+        // ===== HOMEPAGE FUNCTIONALITY =====
+
+        private void InitializeHomepage()
+        {
+            // Setup clock timer
+            _clockTimer = new DispatcherTimer();
+            _clockTimer.Interval = TimeSpan.FromSeconds(1);
+            _clockTimer.Tick += UpdateClock;
+            _clockTimer.Start();
+            
+            // Load quick links
+            LoadQuickLinks();
+            
+            // Load recent sites
+            LoadRecentSites();
+            
+            // Update clock immediately
+            UpdateClock();
+        }
+
+        private void UpdateClock(object? sender = null, EventArgs? e = null) // Made parameters nullable
+        {
+            var now = DateTime.Now;
+            TimeText.Text = now.ToString("HH:mm");
+            DateText.Text = now.ToString("dddd, MMMM dd");
+            DayText.Text = $"Day {now.DayOfYear} of {now.Year}";
+        }
+
+        private void LoadQuickLinks()
+        {
+            // Default quick links - you can load from settings file later
+            _quickLinks = new List<QuickLink>
+            {
+                new QuickLink { Title = "YouTube", Url = "https://youtube.com", Icon = "▶️" },
+                new QuickLink { Title = "Netflix", Url = "https://netflix.com", Icon = "🎬" },
+                new QuickLink { Title = "Spotify", Url = "https://spotify.com", Icon = "🎵" },
+                new QuickLink { Title = "Gmail", Url = "https://gmail.com", Icon = "✉️" },
+                new QuickLink { Title = "GitHub", Url = "https://github.com", Icon = "💻" },
+                new QuickLink { Title = "Reddit", Url = "https://reddit.com", Icon = "📱" },
+            };
+            
+            // You can load user-customized links from settings here
+        }
+
+        private void LoadRecentSites()
+        {
+            // Load from saved file or create empty list
+            _recentSites = new List<RecentSite>();
+            
+            // Update UI
+            UpdateRecentSitesUI();
+        }
+
+        private void UpdateRecentSitesUI()
+        {
+            RecentSitesControl.ItemsSource = _recentSites
+                .OrderByDescending(r => r.VisitedAt)
+                .Take(5)
+                .ToList();
+            
+            NoRecentSitesText.Visibility = _recentSites.Any() 
+                ? Visibility.Collapsed 
+                : Visibility.Visible;
+        }
+
+        private void AddToRecentSites(string title, string url)
+        {
+            var existing = _recentSites.FirstOrDefault(r => r.Url == url);
+            if (existing != null)
+            {
+                _recentSites.Remove(existing);
+            }
+            
+            _recentSites.Add(new RecentSite
+            {
+                Title = string.IsNullOrEmpty(title) ? url : title,
+                Url = url,
+                VisitedAt = DateTime.Now
+            });
+            
+            // Keep only last 20 sites
+            if (_recentSites.Count > 20)
+            {
+                _recentSites = _recentSites
+                    .OrderByDescending(r => r.VisitedAt)
+                    .Take(20)
+                    .ToList();
+            }
+            
+            UpdateRecentSitesUI();
+        }
+
+        private void ShowHomepage(bool show = true)
+        {
+            HomepageGrid.Visibility = show ? Visibility.Visible : Visibility.Collapsed;
+            WebViewContainerGrid.Visibility = show ? Visibility.Collapsed : Visibility.Visible;
+            
+            if (show)
+            {
+                HomepageSearchBox.Focus();
+                UpdateClock(); // Update time immediately
+            }
+        }
+
+        // Homepage search box handlers
+        private void HomepageSearchBox_GotFocus(object sender, RoutedEventArgs e)
+        {
+            if (HomepageSearchBox.Text == "Search or enter address...")
+            {
+                HomepageSearchBox.Text = "";
+                HomepageSearchBox.Foreground = (SolidColorBrush)FindResource("TextPrimary");
+            }
+        }
+
+        private void HomepageSearchBox_LostFocus(object sender, RoutedEventArgs e)
+        {
+            if (string.IsNullOrWhiteSpace(HomepageSearchBox.Text))
+            {
+                HomepageSearchBox.Text = "Search or enter address...";
+                HomepageSearchBox.Foreground = (SolidColorBrush)FindResource("TextSecondary");
+            }
+        }
+
+        private void HomepageSearchBox_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+            {
+                NavigateFromHomepage();
+            }
+        }
+
+        private void HomepageSearchButton_Click(object sender, RoutedEventArgs e)
+        {
+            NavigateFromHomepage();
+        }
+
+        private void NavigateFromHomepage()
+        {
+            var url = HomepageSearchBox.Text.Trim();
+            if (string.IsNullOrWhiteSpace(url) || url == "Search or enter address...")
+                return;
+            
+            // Hide homepage and navigate
+            ShowHomepage(false);
+            NavigateToUrl(url);
+        }
+
+        // Quick link click handler
+        private void QuickLink_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button button && button.Tag is string url)
+            {
+                ShowHomepage(false);
+                NavigateToUrl(url);
+            }
+        }
+
+        // Recent site click handler
+        private void RecentSite_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button button && button.Tag is string url)
+            {
+                ShowHomepage(false);
+                NavigateToUrl(url);
+            }
+        }
+
+        // Add custom link (simple implementation)
+        private void AddCustomLink_Click(object sender, RoutedEventArgs e)
+        {
+            var dialog = new CustomLinkWindow();
+            if (dialog.ShowDialog() == true)
+            {
+                // Add the new link
+                _quickLinks.Add(new QuickLink
+                {
+                    Title = dialog.LinkTitle,
+                    Url = dialog.LinkUrl,
+                    Icon = dialog.LinkIcon
+                });
+                
+                // For now, just show a message
+                MessageBox.Show($"Added {dialog.LinkTitle} to quick links!", 
+                    "Link Added", 
+                    MessageBoxButton.OK, 
+                    MessageBoxImage.Information);
+            }
+        }
+
+        // Home button handler (add this button to your navigation bar)
+        private void HomeButton_Click(object sender, RoutedEventArgs e)
+        {
+            ShowHomepage(true);
         }
 
         // ===== WINDOW DRAG FUNCTIONALITY =====
@@ -613,7 +866,7 @@ namespace Zabrownie.UI
             if (_tabManager.ActiveTab != null)
             {
                 var tabToClose = _tabManager.ActiveTab;
-                _closedTabs.Push(tabToClose); // Guardamos para reabrir
+                _closedTabs.Push(tabToClose); // Save for reopening
                 _tabManager.CloseTab(tabToClose);
 
                 if (_tabManager.Tabs.Count == 0)
@@ -645,8 +898,6 @@ namespace Zabrownie.UI
             ShowTab(_tabManager.Tabs[prevIndex]);
         }
 
-        private Stack<BrowserTab> _closedTabs = new();
-
         private async void ReopenLastClosedTab()
         {
             if (_closedTabs.TryPop(out var tab))
@@ -660,7 +911,7 @@ namespace Zabrownie.UI
                 }
                 else
                 {
-                    // Si el WebView se destruyó, recrear
+                    // If WebView was destroyed, recreate
                     await CreateNewTabAsync(tab.Url);
                 }
             }
@@ -671,7 +922,7 @@ namespace Zabrownie.UI
             var webView = _tabManager.ActiveTab?.WebView;
             if (webView?.CoreWebView2 == null) return;
 
-            // En versiones nuevas, ZoomFactor está en el WebView2 WPF directamente
+            // In newer versions, ZoomFactor is directly in the WebView2 WPF control
             if (reset)
                 webView.ZoomFactor = 1.0;
             else
@@ -716,5 +967,20 @@ namespace Zabrownie.UI
         [DllImport("user32.dll")]
         private static extern IntPtr SendMessage(
             IntPtr hWnd, int msg, IntPtr wParam, IntPtr lParam);
+    }
+
+    // Homepage-related classes
+    public class QuickLink
+    {
+        public string Title { get; set; } = "";
+        public string Url { get; set; } = "";
+        public string Icon { get; set; } = "🔗";
+    }
+
+    public class RecentSite
+    {
+        public string Title { get; set; } = "";
+        public string Url { get; set; } = "";
+        public DateTime VisitedAt { get; set; } = DateTime.Now;
     }
 }
