@@ -2,6 +2,7 @@ using Zabrownie.Core;
 using Zabrownie.Models;
 using System.Linq;
 using System.Windows;
+using System.Windows.Controls;
 
 namespace Zabrownie.UI
 {
@@ -9,15 +10,27 @@ namespace Zabrownie.UI
     {
         private readonly SettingsManager _settingsManager;
         private readonly FilterEngine _filterEngine;
+        private int _totalBlockedCount;
 
-        public SettingsWindow(SettingsManager settingsManager, FilterEngine filterEngine)
+        public SettingsWindow(SettingsManager settingsManager, FilterEngine filterEngine, int blockedCount = 0)
         {
             InitializeComponent();
             
             _settingsManager = settingsManager;
             _filterEngine = filterEngine;
+            _totalBlockedCount = blockedCount;
             
             LoadSettings();
+            ApplyTheme();
+        }
+
+        private void ApplyTheme()
+        {
+            var accentColor = _settingsManager.Settings.AccentColor;
+            if (!string.IsNullOrEmpty(accentColor))
+            {
+                ThemeManager.ApplyAccentColor(accentColor);
+            }
         }
 
         private void LoadSettings()
@@ -31,6 +44,7 @@ namespace Zabrownie.UI
             EnableJavaScriptCheckBox.IsChecked = settings.EnableJavaScript;
             HomepageTextBox.Text = settings.Homepage;
             UserAgentTextBox.Text = settings.UserAgent;
+            CustomColorTextBox.Text = settings.AccentColor;
 
             WhitelistListBox.Items.Clear();
             foreach (var entry in settings.Whitelist)
@@ -38,7 +52,37 @@ namespace Zabrownie.UI
                 WhitelistListBox.Items.Add(entry.Domain);
             }
 
-            FilterStatsText.Text = $"Total filter rules loaded: {_filterEngine.TotalRules}";
+            FilterStatsText.Text = $"Reglas de filtro cargadas: {_filterEngine.TotalRules}";
+            BlockedCountText.Text = $"🛡️ Total de anuncios bloqueados: {_totalBlockedCount}";
+        }
+
+        private void PresetColor_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button button && button.Tag is string color)
+            {
+                CustomColorTextBox.Text = color;
+                ThemeManager.ApplyAccentColor(color);
+            }
+        }
+
+        private void ApplyCustomColor_Click(object sender, RoutedEventArgs e)
+        {
+            var color = CustomColorTextBox.Text.Trim();
+            
+            if (!color.StartsWith("#"))
+                color = "#" + color;
+            
+            if (ThemeManager.IsValidHexColor(color))
+            {
+                ThemeManager.ApplyAccentColor(color);
+                MessageBox.Show("Color aplicado correctamente", "Éxito", 
+                    MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+            else
+            {
+                MessageBox.Show("Color hexadecimal inválido. Use el formato: #RRGGBB", 
+                    "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
         }
 
         private void AddWhitelistButton_Click(object sender, RoutedEventArgs e)
@@ -56,7 +100,7 @@ namespace Zabrownie.UI
         {
             if (WhitelistListBox.SelectedItem != null)
             {
-                var domain = WhitelistListBox.SelectedItem?.ToString();
+                var domain = WhitelistListBox.SelectedItem.ToString();
                 if (!string.IsNullOrEmpty(domain))
                 {
                     _settingsManager.RemoveFromWhitelist(domain);
@@ -68,7 +112,8 @@ namespace Zabrownie.UI
         private void ClearCacheButton_Click(object sender, RoutedEventArgs e)
         {
             _filterEngine.ClearCache();
-            MessageBox.Show("Decision cache cleared.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+            MessageBox.Show("Caché de decisiones limpiado.", "Éxito", 
+                MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
         private async void SaveButton_Click(object sender, RoutedEventArgs e)
@@ -82,11 +127,20 @@ namespace Zabrownie.UI
             settings.EnableJavaScript = EnableJavaScriptCheckBox.IsChecked ?? true;
             settings.Homepage = HomepageTextBox.Text;
             settings.UserAgent = UserAgentTextBox.Text;
+            
+            var color = CustomColorTextBox.Text.Trim();
+            if (!color.StartsWith("#"))
+                color = "#" + color;
+            
+            if (ThemeManager.IsValidHexColor(color))
+            {
+                settings.AccentColor = color;
+            }
 
             await _settingsManager.SaveAsync();
             
-            MessageBox.Show("Settings saved successfully. Some changes may require a restart.", 
-                "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+            MessageBox.Show("Configuración guardada correctamente. Algunos cambios pueden requerir reiniciar.", 
+                "Éxito", MessageBoxButton.OK, MessageBoxImage.Information);
             
             DialogResult = true;
             Close();

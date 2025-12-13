@@ -129,19 +129,19 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\INFORMATICA\\.nuget\\packages\\": {}
+    "C:\\Users\\edgar\\.nuget\\packages\\": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\INFORMATICA\\Documents\\GitHub\\Zabrownie\\Zabrownie\\Zabrownie.csproj",
+      "projectUniqueName": "C:\\Users\\edgar\\Documents\\palCredito\\interfaz\\Zabrownie\\Zabrownie\\Zabrownie.csproj",
       "projectName": "Zabrownie",
-      "projectPath": "C:\\Users\\INFORMATICA\\Documents\\GitHub\\Zabrownie\\Zabrownie\\Zabrownie.csproj",
-      "packagesPath": "C:\\Users\\INFORMATICA\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\INFORMATICA\\Documents\\GitHub\\Zabrownie\\Zabrownie\\obj\\",
+      "projectPath": "C:\\Users\\edgar\\Documents\\palCredito\\interfaz\\Zabrownie\\Zabrownie\\Zabrownie.csproj",
+      "packagesPath": "C:\\Users\\edgar\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\edgar\\Documents\\palCredito\\interfaz\\Zabrownie\\Zabrownie\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
-        "C:\\Users\\INFORMATICA\\AppData\\Roaming\\NuGet\\NuGet.Config"
+        "C:\\Users\\edgar\\AppData\\Roaming\\NuGet\\NuGet.Config"
       ],
       "originalTargetFrameworks": [
         "net10.0-windows"

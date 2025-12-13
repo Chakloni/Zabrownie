@@ -11,6 +11,8 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using System.Windows.Interop;
+using System.Runtime.InteropServices;
 
 namespace Zabrownie.UI
 {
@@ -71,6 +73,7 @@ namespace Zabrownie.UI
             {
                 await _settingsManager.LoadAsync();
                 await _bookmarkManager.LoadAsync();
+                ThemeManager.ApplyAccentColor(_settingsManager.Settings.AccentColor);
                 await CreateDefaultFiltersIfNeeded();
 
                 // Load bookmarks bar
@@ -223,7 +226,7 @@ namespace Zabrownie.UI
                 }
 
                 UpdateNavigationButtons();
-                UpdateBlockedCount(tab);
+                //UpdateBlockedCount(tab);
                 UpdateBookmarkButton();
             }
         }
@@ -422,7 +425,7 @@ namespace Zabrownie.UI
                         new Exception(e.WebErrorStatus.ToString()));
                 }
                 UpdateNavigationButtons();
-                UpdateBlockedCount(tab);
+                //UpdateBlockedCount(tab);
             }
 
             // Update title
@@ -454,10 +457,10 @@ namespace Zabrownie.UI
             ForwardButton.IsEnabled = _tabManager.ActiveTab?.WebView?.CanGoForward ?? false;
         }
 
-        private void UpdateBlockedCount(BrowserTab tab)
+        /* private void UpdateBlockedCount(BrowserTab tab)
         {
-            BlockedCountText.Text = $"Bloqueados: {tab.BlockedCount}";
-        }
+            //BlockedCountText.Text = $"Bloqueados: {tab.BlockedCount}";
+        } */
 
         private void UpdateBookmarkButton()
         {
@@ -601,11 +604,11 @@ namespace Zabrownie.UI
         private async void CloseCurrentTab()
         {
             if (_tabManager.ActiveTab != null)
-    {
+            {
                 var tabToClose = _tabManager.ActiveTab;
                 _closedTabs.Push(tabToClose); // Guardamos para reabrir
                 _tabManager.CloseTab(tabToClose);
-                
+
                 if (_tabManager.Tabs.Count == 0)
                 {
                     await CreateNewTabAsync();
@@ -682,5 +685,29 @@ namespace Zabrownie.UI
                 remove { }
             }
         }
+
+        private void ResizeGrip_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            if (e.LeftButton == MouseButtonState.Pressed)
+                DragResize(WindowResizeEdge.BottomRight);
+        }
+
+        private void DragResize(WindowResizeEdge edge)
+        {
+            SendMessage(
+                new WindowInteropHelper(this).Handle,
+                0x112,
+                (IntPtr)(0xF000 + edge),
+                IntPtr.Zero);
+        }
+
+        private enum WindowResizeEdge
+        {
+            BottomRight = 8
+        }
+
+        [DllImport("user32.dll")]
+        private static extern IntPtr SendMessage(
+            IntPtr hWnd, int msg, IntPtr wParam, IntPtr lParam);
     }
 }
