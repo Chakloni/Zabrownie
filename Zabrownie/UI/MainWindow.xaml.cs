@@ -532,6 +532,13 @@ namespace Zabrownie.UI
             var settingsWindow = new SettingsWindow(_settingsManager, _filterEngine);
             settingsWindow.Owner = this;
             settingsWindow.ShowDialog();
+
+            bool? result = settingsWindow.ShowDialog();
+
+            if (result == true)
+            {
+                ThemeManager.ApplyAccentColor(_settingsManager.Settings.AccentColor);
+            }
         }
 
         private async void Window_Closing(object? sender, System.ComponentModel.CancelEventArgs e)

@@ -20,10 +20,10 @@
                          Color="#25252A"/>
         <SolidColorBrush x:Key="BgTertiary"
                          Color="#2D2D35"/>
-        <SolidColorBrush x:Key="AccentColor"
-                         Color="#8B5CF6"/>
-        <SolidColorBrush x:Key="AccentHover"
-                         Color="#A78BFA"/>
+        <!-- <SolidColorBrush x:Key="AccentColor"
+                         Color="#8B5CF6"/> -->
+        <!-- <SolidColorBrush x:Key="AccentHover"
+                         Color="#A78BFA"/> -->
         <SolidColorBrush x:Key="TextPrimary"
                          Color="#FFFFFF"/>
         <SolidColorBrush x:Key="TextSecondary"
@@ -63,7 +63,7 @@
                                                 <Border x:Name="ThumbBorder"
                                                         Width="6"
                                                         Margin="2"
-                                                        Background="{StaticResource AccentColor}"
+                                                        Background="{DynamicResource AccentColor}"
                                                         CornerRadius="10"
                                                         Opacity="0.7"/>
                                                 <ControlTemplate.Triggers>
@@ -158,7 +158,7 @@
                                      Value="True">
                                 <Setter TargetName="Border"
                                         Property="Background"
-                                        Value="{StaticResource BgTertiary}"/>
+                                        Value="{DynamicResource BgTertiary}"/>
                             </Trigger>
 
                             <DataTrigger Binding="{Binding IsActive}"
@@ -170,7 +170,7 @@
                                         Value="{StaticResource BgTertiary}"/>
                                 <Setter TargetName="Border"
                                         Property="BorderBrush"
-                                        Value="{StaticResource AccentColor}"/>
+                                        Value="{DynamicResource AccentColor}"/>
                                 <Setter TargetName="Border"
                                         Property="BorderThickness"
                                         Value="0,2,0,0"/>
@@ -240,7 +240,7 @@
                TargetType="Button"
                BasedOn="{StaticResource NavButtonStyle}">
             <Setter Property="Background"
-                    Value="{StaticResource AccentColor}"/>
+                    Value="{DynamicResource AccentColor}"/>
             <Setter Property="Foreground"
                     Value="{StaticResource TextPrimary}"/>
             <Setter Property="Width"
@@ -264,7 +264,7 @@
                                      Value="True">
                                 <Setter TargetName="Border"
                                         Property="Background"
-                                        Value="{StaticResource AccentHover}"/>
+                                        Value="{DynamicResource AccentHover}"/>
                             </Trigger>
                             <Trigger Property="IsPressed"
                                      Value="True">
@@ -321,7 +321,7 @@
                         <TextBlock Text="Z"
                                    FontSize="20"
                                    FontWeight="Bold"
-                                   Foreground="{StaticResource AccentColor}"
+                                   Foreground="{DynamicResource AccentColor}"
                                    Margin="0,0,4,0"/>
                         <TextBlock Text="abrownie"
                                    FontSize="14"
@@ -509,7 +509,7 @@
                                  Foreground="{StaticResource TextPrimary}"
                                  Background="Transparent"
                                  BorderThickness="0"
-                                 CaretBrush="{StaticResource AccentColor}"
+                                 CaretBrush="{DynamicResource AccentColor}"
                                  KeyDown="AddressBar_KeyDown"
                                  GotFocus="AddressBar_GotFocus"
                                  Text="Escribe URL o busca..."/>
@@ -587,7 +587,7 @@
                 <!-- Notificación flotante -->
                 <Border x:Name="StatusNotification"
                         Background="{StaticResource BgSecondary}"
-                        BorderBrush="{StaticResource AccentColor}"
+                        BorderBrush="{DynamicResource AccentColor}"
                         BorderThickness="1"
                         CornerRadius="8"
                         Padding="12,8"

@@ -9,7 +9,7 @@
         <SolidColorBrush x:Key="BgPrimary" Color="#1A1A1D"/>
         <SolidColorBrush x:Key="BgSecondary" Color="#25252A"/>
         <SolidColorBrush x:Key="BgTertiary" Color="#2D2D35"/>
-        <SolidColorBrush x:Key="AccentColor" Color="#8B5CF6"/>
+        <!-- <SolidColorBrush x:Key="AccentColor" Color="#8B5CF6"/> -->
         <SolidColorBrush x:Key="TextPrimary" Color="#FFFFFF"/>
         <SolidColorBrush x:Key="TextSecondary" Color="#A0A0A8"/>
         <SolidColorBrush x:Key="BorderColor" Color="#3A3A45"/>
@@ -30,7 +30,7 @@
             <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
             <Setter Property="BorderBrush" Value="{StaticResource BorderColor}"/>
             <Setter Property="Padding" Value="8,4"/>
-            <Setter Property="CaretBrush" Value="{StaticResource AccentColor}"/>
+            <Setter Property="CaretBrush" Value="{DynamicResource AccentColor}"/>
         </Style>
         
         <Style TargetType="ComboBox">
@@ -49,7 +49,7 @@
         </Style>
         
         <Style x:Key="AccentButton" TargetType="Button">
-            <Setter Property="Background" Value="{StaticResource AccentColor}"/>
+            <Setter Property="Background" Value="{DynamicResource AccentColor}"/>
             <Setter Property="Foreground" Value="White"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Padding" Value="12,6"/>

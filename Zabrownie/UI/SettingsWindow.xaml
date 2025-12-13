@@ -17,8 +17,8 @@
                          Color="#25252A"/>
         <SolidColorBrush x:Key="BgTertiary"
                          Color="#2D2D35"/>
-        <SolidColorBrush x:Key="AccentColor"
-                         Color="#8B5CF6"/>
+        <!-- <SolidColorBrush x:Key="AccentColor"
+                         Color="#8B5CF6"/> -->
         <SolidColorBrush x:Key="TextPrimary"
                          Color="#FFFFFF"/>
         <SolidColorBrush x:Key="TextSecondary"
@@ -58,7 +58,7 @@
                                                 <Border x:Name="ThumbBorder"
                                                         Width="6"
                                                         Margin="2"
-                                                        Background="{StaticResource AccentColor}"
+                                                        Background="{DynamicResource AccentColor}"
                                                         CornerRadius="10"
                                                         Opacity="0.7"/>
                                                 <ControlTemplate.Triggers>
@@ -151,7 +151,7 @@
             <Setter Property="Padding"
                     Value="8,4"/>
             <Setter Property="CaretBrush"
-                    Value="{StaticResource AccentColor}"/>
+                    Value="{DynamicResource AccentColor}"/>
         </Style>
 
         <Style TargetType="ComboBox">
@@ -175,7 +175,7 @@
         <Style x:Key="AccentButton"
                TargetType="Button">
             <Setter Property="Background"
-                    Value="{StaticResource AccentColor}"/>
+                    Value="{DynamicResource AccentColor}"/>
             <Setter Property="Foreground"
                     Value="White"/>
             <Setter Property="BorderThickness"
@@ -362,7 +362,7 @@
                         <TextBlock x:Name="FilterStatsText"
                                    Margin="0,0,0,8"/>
                         <TextBlock x:Name="BlockedCountText"
-                                   Foreground="{StaticResource AccentColor}"
+                                   Foreground="{DynamicResource AccentColor}"
                                    FontWeight="Bold"
                                    FontSize="14"
                                    Margin="0,0,0,8"/>

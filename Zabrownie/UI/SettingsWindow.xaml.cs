@@ -135,6 +135,7 @@ namespace Zabrownie.UI
             if (ThemeManager.IsValidHexColor(color))
             {
                 settings.AccentColor = color;
+                ThemeManager.ApplyAccentColor(color);
             }
 
             await _settingsManager.SaveAsync();
