@@ -91,7 +91,7 @@ namespace Zabrownie.UI {
                 return;
             }
             _contentLoaded = true;
-            System.Uri resourceLocater = new System.Uri("/Zabrownie;V1.0.0.0;component/ui/bookmarkswindow.xaml", System.UriKind.Relative);
+            System.Uri resourceLocater = new System.Uri("/Zabrownie;component/ui/bookmarkswindow.xaml", System.UriKind.Relative);
             
             #line 1 "..\..\..\..\UI\BookmarksWindow.xaml"
             System.Windows.Application.LoadComponent(this, resourceLocater);

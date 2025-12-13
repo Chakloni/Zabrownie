@@ -10,6 +10,7 @@ namespace Zabrownie.Core
         private readonly FilterEngine _filterEngine;
         private readonly SettingsManager _settingsManager;
         private int _blockedCount;
+        private string _lastDocumentUrl = "";
 
         public int BlockedCount => _blockedCount;
 
@@ -21,13 +22,22 @@ namespace Zabrownie.Core
 
         public async Task InitializeAsync()
         {
-            var defaultFiltersPath = FileService.GetDefaultFiltersPath();
-            await _filterEngine.LoadFiltersAsync(defaultFiltersPath);
-            
-            var customLists = _settingsManager.Settings.CustomFilterLists;
-            if (customLists != null && customLists.Count > 0)
+            try
             {
-                await _filterEngine.LoadFiltersFromMultipleSourcesAsync(customLists);
+                var defaultFiltersPath = FileService.GetDefaultFiltersPath();
+                await _filterEngine.LoadFiltersAsync(defaultFiltersPath);
+
+                var customLists = _settingsManager.Settings.CustomFilterLists;
+                if (customLists != null && customLists.Count > 0)
+                {
+                    await _filterEngine.LoadFiltersFromMultipleSourcesAsync(customLists);
+                }
+
+                LoggingService.Log($"AdBlocker initialized with {_filterEngine.TotalRules} rules");
+            }
+            catch (Exception ex)
+            {
+                LoggingService.LogError("Failed to initialize AdBlocker", ex);
             }
         }
 
@@ -35,6 +45,12 @@ namespace Zabrownie.Core
         {
             coreWebView.AddWebResourceRequestedFilter("*", CoreWebView2WebResourceContext.All);
             coreWebView.WebResourceRequested += OnWebResourceRequested;
+            
+            // Actualizar la URL del documento cuando navegue
+            coreWebView.SourceChanged += (s, e) =>
+            {
+                _lastDocumentUrl = coreWebView.Source?.ToString() ?? "";
+            };
         }
 
         public void DetachFromWebView(CoreWebView2 coreWebView)
@@ -50,28 +66,48 @@ namespace Zabrownie.Core
                     return;
 
                 var url = e.Request.Uri;
-                var requestUri = new Uri(url);
+
+                if (string.IsNullOrEmpty(url))
+                    return;
+
+                // Validar URL
+                if (!Uri.TryCreate(url, UriKind.Absolute, out var requestUri))
+                    return;
+
                 var domain = requestUri.Host;
 
+                // Verificar whitelist
                 if (_settingsManager.IsWhitelisted(domain))
                     return;
 
-                if (_filterEngine.ShouldBlock(url))
+                // Obtener la URL del documento principal
+                var coreWebView = sender as CoreWebView2;
+                var documentUrl = coreWebView?.Source?.ToString() ?? _lastDocumentUrl;
+
+                // Verificar si debe bloquearse
+                if (_filterEngine.ShouldBlock(url, documentUrl, e.ResourceContext))
                 {
-                    var coreWebView = sender as CoreWebView2;
-                    if (coreWebView != null)
+                    // Bloquear la solicitud
+                    if (coreWebView?.Environment != null)
                     {
                         e.Response = coreWebView.Environment.CreateWebResourceResponse(
-                            null, 403, "Blocked", "");
+                            null, 403, "Blocked by AdBlocker", "");
                         
                         _blockedCount++;
-                        LoggingService.Log($"Blocked: {url}");
+                        
+                        // Log solo para recursos importantes
+                        if (e.ResourceContext == CoreWebView2WebResourceContext.Script ||
+                            e.ResourceContext == CoreWebView2WebResourceContext.Document ||
+                            e.ResourceContext == CoreWebView2WebResourceContext.Stylesheet)
+                        {
+                            LoggingService.Log($"Blocked [{e.ResourceContext}]: {url}");
+                        }
                     }
                 }
             }
             catch (Exception ex)
             {
-                LoggingService.LogError("Error in AdBlocker.OnWebResourceRequested", ex);
+                LoggingService.LogError($"Error in AdBlocker.OnWebResourceRequested for {e.Request.Uri}", ex);
             }
         }
 

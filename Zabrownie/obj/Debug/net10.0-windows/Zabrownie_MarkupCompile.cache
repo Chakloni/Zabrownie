@@ -1,5 +1,5 @@
 ﻿Zabrownie
-1.0.0.0
+
 
 winexe
 C#
@@ -12,9 +12,9 @@ TRACE;DEBUG;NET;NET10_0;NETCOREAPP;WINDOWS;WINDOWS7_0;NET5_0_OR_GREATER;NET6_0_O
 C:\Users\edgar\Documents\palCredito\interfaz\Zabrownie\Zabrownie\App.xaml
 5114836291
 3-1739997676
-221940184913
+20-998855018
 222-1931633993
 MainWindow.xaml;UI\BookmarksWindow.xaml;UI\EditBookmarkDialog.xaml;UI\MainWindow.xaml;UI\SettingsWindow.xaml;
 
-True
+False
 

@@ -1,20 +1,16 @@
-using Zabrownie.Services;
+using DistillNET;
+using Microsoft.Web.WebView2.Core;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Zabrownie.Services;
 
 namespace Zabrownie.Core
 {
     public class FilterEngine
     {
-        private readonly HashSet<string> _exactMatchRules = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        private readonly List<string> _substringRules = new List<string>();
-        private readonly Dictionary<string, List<string>> _domainRules = new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase);
-        private readonly List<Regex> _regexRules = new List<Regex>();
-        private readonly Dictionary<string, bool> _decisionCache = new Dictionary<string, bool>();
-        private const int MaxCacheSize = 10000;
+        private readonly List<Filter> _filters = new List<Filter>();
         private readonly object _lock = new object();
 
         public int TotalRules { get; private set; }
@@ -24,7 +20,7 @@ namespace Zabrownie.Core
             try
             {
                 var lines = await FileService.LoadTextFileAsync(filePath);
-                ParseRules(lines);
+                await LoadFromLinesAsync(lines);
                 LoggingService.Log($"Loaded {TotalRules} filter rules from {filePath}");
             }
             catch (Exception ex)
@@ -35,145 +31,185 @@ namespace Zabrownie.Core
 
         public async Task LoadFiltersFromMultipleSourcesAsync(List<string> filePaths)
         {
+            var allLines = new List<string>();
+            
             foreach (var path in filePaths)
             {
-                await LoadFiltersAsync(path);
+                try
+                {
+                    var lines = await FileService.LoadTextFileAsync(path);
+                    allLines.AddRange(lines);
+                }
+                catch (Exception ex)
+                {
+                    LoggingService.LogError($"Failed to load filters from {path}", ex);
+                }
+            }
+            
+            if (allLines.Count > 0)
+            {
+                await LoadFromLinesAsync(allLines.ToArray());
             }
         }
 
-        private void ParseRules(string[] lines)
+        private Task LoadFromLinesAsync(string[] lines)
         {
-            lock (_lock)
+            return Task.Run(() =>
             {
-                foreach (var line in lines)
+                lock (_lock)
                 {
-                    var trimmed = line.Trim();
-                    
-                    if (string.IsNullOrEmpty(trimmed) || trimmed.StartsWith("!") || trimmed.StartsWith("["))
-                        continue;
-
                     try
                     {
-                        // Domain-specific rules: ||domain.com^
-                        if (trimmed.StartsWith("||") && trimmed.Contains("^"))
+                        _filters.Clear();
+
+                        // Filtrar líneas válidas
+                        var validRules = lines
+                            .Select(line => line.Trim())
+                            .Where(line => !string.IsNullOrWhiteSpace(line) && 
+                                         !line.StartsWith("!") && 
+                                         !line.StartsWith("["))
+                            .ToList();
+
+                        TotalRules = validRules.Count;
+
+                        if (validRules.Count == 0)
                         {
-                            var domain = trimmed.Substring(2, trimmed.IndexOf('^') - 2);
-                            if (!_domainRules.ContainsKey(domain))
-                                _domainRules[domain] = new List<string>();
-                            _domainRules[domain].Add(trimmed);
-                            TotalRules++;
+                            LoggingService.Log("No valid filter rules found");
+                            return;
                         }
-                        // Regex rules (contains special regex characters)
-                        else if (trimmed.Contains("*") || trimmed.Contains("?") || trimmed.Contains("["))
+
+                        // Parsear y agregar reglas usando AbpFormatRuleParser
+                        var parser = new AbpFormatRuleParser();
+                        int addedCount = 0;
+
+                        foreach (var rule in validRules)
                         {
-                            var pattern = ConvertToRegex(trimmed);
-                            _regexRules.Add(new Regex(pattern, RegexOptions.IgnoreCase | RegexOptions.Compiled));
-                            TotalRules++;
+                            try
+                            {
+                                // ParseAbpFormattedRule(string rule, short categoryId)
+                                var parsedFilter = parser.ParseAbpFormattedRule(rule, 1);
+                                
+                                if (parsedFilter != null)
+                                {
+                                    _filters.Add(parsedFilter);
+                                    addedCount++;
+                                }
+                            }
+                            catch
+                            {
+                                // Ignorar reglas inválidas silenciosamente
+                            }
                         }
-                        // Exact match
-                        else if (!trimmed.Contains("/") && !trimmed.Contains("."))
-                        {
-                            _exactMatchRules.Add(trimmed);
-                            TotalRules++;
-                        }
-                        // Substring match
-                        else
-                        {
-                            _substringRules.Add(trimmed.ToLowerInvariant());
-                            TotalRules++;
-                        }
+
+                        LoggingService.Log($"DistillNET initialized with {addedCount} valid filters from {TotalRules} rules");
                     }
                     catch (Exception ex)
                     {
-                        LoggingService.LogError($"Failed to parse rule: {trimmed}", ex);
+                        LoggingService.LogError("Failed to initialize DistillNET", ex);
                     }
                 }
-            }
+            });
         }
 
-        private string ConvertToRegex(string rule)
+        public bool ShouldBlock(string requestUrl, string documentUrl, CoreWebView2WebResourceContext resourceContext)
         {
-            var pattern = Regex.Escape(rule)
-                .Replace("\\*", ".*")
-                .Replace("\\^", "([^\\w\\d_\\-.%]|$)")
-                .Replace("\\|\\|", "^https?://([^/]+\\.)?");
-            
-            return pattern;
-        }
-
-        public bool ShouldBlock(string url)
-        {
-            if (string.IsNullOrEmpty(url))
+            if (_filters.Count == 0 || string.IsNullOrEmpty(requestUrl))
                 return false;
 
             lock (_lock)
             {
-                if (_decisionCache.TryGetValue(url, out var cachedDecision))
-                    return cachedDecision;
-
-                var decision = CheckRules(url);
-                
-                if (_decisionCache.Count >= MaxCacheSize)
+                try
                 {
-                    var toRemove = _decisionCache.Keys.Take(MaxCacheSize / 4).ToList();
-                    foreach (var key in toRemove)
-                        _decisionCache.Remove(key);
-                }
+                    // Validar URLs
+                    if (!Uri.TryCreate(requestUrl, UriKind.Absolute, out var requestUri))
+                        return false;
 
-                _decisionCache[url] = decision;
-                return decision;
+                    Uri? documentUri = null;
+                    if (!string.IsNullOrEmpty(documentUrl))
+                    {
+                        Uri.TryCreate(documentUrl, UriKind.Absolute, out documentUri);
+                    }
+
+                    var requestUrlLower = requestUri.AbsoluteUri.ToLowerInvariant();
+                    var sourceHost = documentUri?.Host ?? requestUri.Host;
+
+                    // Verificar filtros de excepción primero (whitelist)
+                    foreach (var filter in _filters.Where(f => f.IsException))
+                    {
+                        if (filter is UrlFilter urlFilter && MatchesUrlFilter(urlFilter, requestUrlLower, sourceHost))
+                        {
+                            return false; // Está en whitelist, no bloquear
+                        }
+                    }
+
+                    // Verificar filtros de bloqueo
+                    foreach (var filter in _filters.Where(f => !f.IsException))
+                    {
+                        if (filter is UrlFilter urlFilter && MatchesUrlFilter(urlFilter, requestUrlLower, sourceHost))
+                        {
+                            return true; // Debe bloquearse
+                        }
+                    }
+
+                    return false;
+                }
+                catch (Exception ex)
+                {
+                    LoggingService.LogError($"Error checking filter for {requestUrl}", ex);
+                    return false;
+                }
             }
         }
 
-        private bool CheckRules(string url)
+        private bool MatchesUrlFilter(UrlFilter filter, string url, string sourceHost)
         {
-            var lowerUrl = url.ToLowerInvariant();
-
-            // Check exact matches
-            var segments = url.Split(new[] { '/', '?', '&', '=' }, StringSplitOptions.RemoveEmptyEntries);
-            foreach (var segment in segments)
-            {
-                if (_exactMatchRules.Contains(segment))
-                    return true;
-            }
-
-            // Check domain-specific rules
             try
             {
-                var uri = new Uri(url);
-                var domain = uri.Host;
+                // Obtener la regla original
+                var rule = filter.OriginalRule.ToLowerInvariant();
                 
-                foreach (var knownDomain in _domainRules.Keys)
+                // Remover caracteres especiales de ABP para matching simple
+                var cleanRule = rule
+                    .Replace("||", "")
+                    .Replace("^", "")
+                    .Replace("@@", "")
+                    .Trim();
+
+                // Si está vacío después de limpiar, ignorar
+                if (string.IsNullOrEmpty(cleanRule))
+                    return false;
+
+                // Si la regla tiene wildcards
+                if (cleanRule.Contains("*"))
                 {
-                    if (domain.Contains(knownDomain))
-                        return true;
+                    try
+                    {
+                        // Convertir a regex simple
+                        var pattern = "^" + System.Text.RegularExpressions.Regex.Escape(cleanRule)
+                            .Replace("\\*", ".*");
+                        
+                        return System.Text.RegularExpressions.Regex.IsMatch(url, pattern);
+                    }
+                    catch
+                    {
+                        // Si falla el regex, usar substring
+                        cleanRule = cleanRule.Replace("*", "");
+                        return url.Contains(cleanRule);
+                    }
                 }
+                
+                // Matching simple por substring
+                return url.Contains(cleanRule);
             }
-            catch { }
-
-            // Check substring rules
-            foreach (var rule in _substringRules)
+            catch
             {
-                if (lowerUrl.Contains(rule))
-                    return true;
+                return false;
             }
-
-            // Check regex rules (expensive, last resort)
-            foreach (var regex in _regexRules)
-            {
-                if (regex.IsMatch(url))
-                    return true;
-            }
-
-            return false;
         }
 
         public void ClearCache()
         {
-            lock (_lock)
-            {
-                _decisionCache.Clear();
-            }
+            LoggingService.Log("Cache clear requested");
         }
     }
 }

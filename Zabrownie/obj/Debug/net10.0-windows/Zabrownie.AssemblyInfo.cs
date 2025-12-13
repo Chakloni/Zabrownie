@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Zabrownie")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+97c1ca5382977f3320f180baf76c6a8a903dcf4e")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+37b56530441933c0aa5f587d19e69d17cb7eb0a5")]
 [assembly: System.Reflection.AssemblyProductAttribute("Zabrownie")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Zabrownie")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

@@ -6,8 +6,8 @@
     <UseWPF>true</UseWPF>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="DistillNET" Version="1.6.6"/>
-    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.3650.58"/>
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.4"/>
+    <PackageReference Include="DistillNET" Version="1.6.6" />
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.3650.58" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
   </ItemGroup>
 </Project>
