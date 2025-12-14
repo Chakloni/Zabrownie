@@ -143,14 +143,16 @@ namespace Zabrownie.UI
             MessageBox.Show("Configuración guardada correctamente. Algunos cambios pueden requerir reiniciar.", 
                 "Éxito", MessageBoxButton.OK, MessageBoxImage.Information);
             
+            // CAMBIADO: Establecer DialogResult y cerrar solo esta ventana
             DialogResult = true;
-            Close();
+            this.Close(); // Cierra solo la ventana de configuración, NO el navegador
         }
 
         private void CancelButton_Click(object sender, RoutedEventArgs e)
         {
+            // CAMBIADO: Cerrar solo esta ventana sin guardar
             DialogResult = false;
-            Close();
+            this.Close(); // Cierra solo la ventana de configuración, NO el navegador
         }
     }
 }

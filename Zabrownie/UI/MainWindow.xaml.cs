@@ -170,6 +170,25 @@ namespace Zabrownie.UI
                 // Use the pre-initialized environment
                 await webView.EnsureCoreWebView2Async(_webViewEnvironment);
 
+                webView.CoreWebView2.ContainsFullScreenElementChanged += (s, e) =>
+                {
+                    Dispatcher.Invoke(() =>
+                    {
+                        if (webView.CoreWebView2.ContainsFullScreenElement)
+                        {
+                            TitleBar.Visibility = Visibility.Collapsed;
+                            BookmarksBar.Visibility = Visibility.Collapsed;
+                            NavigationBar.Visibility = Visibility.Collapsed;
+                        }
+                        else
+                        {
+                            TitleBar.Visibility = Visibility.Visible;
+                            BookmarksBar.Visibility = Visibility.Visible;
+                            NavigationBar.Visibility = Visibility.Visible;
+                        }
+                    });
+                };
+
                 LoggingService.Log("WebView2 initialized successfully");
 
                 // Create dedicated AdBlocker for this tab
@@ -341,7 +360,7 @@ namespace Zabrownie.UI
             if (sender is Button button && button.Tag is BrowserTab tab)
             {
                 ShowTab(tab);
-                
+
                 // Show/hide homepage based on current tab's URL
                 if (tab.Url == "homepage" || tab.Url == "about:blank" || string.IsNullOrWhiteSpace(tab.Url))
                 {
@@ -369,7 +388,7 @@ namespace Zabrownie.UI
                 if (_tabManager.ActiveTab != null)
                 {
                     ShowTab(_tabManager.ActiveTab);
-                    
+
                     // Show/hide homepage based on active tab's URL
                     if (_tabManager.ActiveTab.Url == "homepage" || _tabManager.ActiveTab.Url == "about:blank" || string.IsNullOrWhiteSpace(_tabManager.ActiveTab.Url))
                     {
@@ -475,7 +494,7 @@ namespace Zabrownie.UI
                 var title = tab.WebView.CoreWebView2.DocumentTitle;
                 tab.Title = string.IsNullOrEmpty(title) ? "Nueva Pestaña" : title;
                 LoggingService.Log($"Tab title updated: {tab.Title}");
-                
+
                 // Add to recent sites
                 if (e.IsSuccess && !string.IsNullOrEmpty(tab.Url) && tab.Url != "about:blank" && tab.Url != "homepage")
                 {
@@ -495,7 +514,7 @@ namespace Zabrownie.UI
             {
                 AddressBar.Text = url;
                 UpdateBookmarkButton();
-                
+
                 // Show/hide homepage based on URL
                 if (url == "about:blank" || url == "homepage" || string.IsNullOrWhiteSpace(url))
                 {
@@ -583,7 +602,6 @@ namespace Zabrownie.UI
         {
             var settingsWindow = new SettingsWindow(_settingsManager, _filterEngine);
             settingsWindow.Owner = this;
-            settingsWindow.ShowDialog();
 
             bool? result = settingsWindow.ShowDialog();
 
@@ -610,7 +628,7 @@ namespace Zabrownie.UI
             }
 
             _tabManager.CloseAllTabs();
-            
+
             // Stop the clock timer
             if (_clockTimer != null)
             {
@@ -627,13 +645,13 @@ namespace Zabrownie.UI
             _clockTimer.Interval = TimeSpan.FromSeconds(1);
             _clockTimer.Tick += UpdateClock;
             _clockTimer.Start();
-            
+
             // Load quick links
             LoadQuickLinks();
-            
+
             // Load recent sites
             LoadRecentSites();
-            
+
             // Update clock immediately
             UpdateClock();
         }
@@ -658,7 +676,7 @@ namespace Zabrownie.UI
                 new QuickLink { Title = "GitHub", Url = "https://github.com", Icon = "💻" },
                 new QuickLink { Title = "Reddit", Url = "https://reddit.com", Icon = "📱" },
             };
-            
+
             // You can load user-customized links from settings here
         }
 
@@ -666,7 +684,7 @@ namespace Zabrownie.UI
         {
             // Load from saved file or create empty list
             _recentSites = new List<RecentSite>();
-            
+
             // Update UI
             UpdateRecentSitesUI();
         }
@@ -677,9 +695,9 @@ namespace Zabrownie.UI
                 .OrderByDescending(r => r.VisitedAt)
                 .Take(5)
                 .ToList();
-            
-            NoRecentSitesText.Visibility = _recentSites.Any() 
-                ? Visibility.Collapsed 
+
+            NoRecentSitesText.Visibility = _recentSites.Any()
+                ? Visibility.Collapsed
                 : Visibility.Visible;
         }
 
@@ -690,14 +708,14 @@ namespace Zabrownie.UI
             {
                 _recentSites.Remove(existing);
             }
-            
+
             _recentSites.Add(new RecentSite
             {
                 Title = string.IsNullOrEmpty(title) ? url : title,
                 Url = url,
                 VisitedAt = DateTime.Now
             });
-            
+
             // Keep only last 20 sites
             if (_recentSites.Count > 20)
             {
@@ -706,7 +724,7 @@ namespace Zabrownie.UI
                     .Take(20)
                     .ToList();
             }
-            
+
             UpdateRecentSitesUI();
         }
 
@@ -714,7 +732,7 @@ namespace Zabrownie.UI
         {
             HomepageGrid.Visibility = show ? Visibility.Visible : Visibility.Collapsed;
             WebViewContainerGrid.Visibility = show ? Visibility.Collapsed : Visibility.Visible;
-            
+
             if (show)
             {
                 HomepageSearchBox.Focus();
@@ -759,7 +777,7 @@ namespace Zabrownie.UI
             var url = HomepageSearchBox.Text.Trim();
             if (string.IsNullOrWhiteSpace(url) || url == "Search or enter address...")
                 return;
-            
+
             // Hide homepage and navigate
             ShowHomepage(false);
             NavigateToUrl(url);
@@ -798,11 +816,11 @@ namespace Zabrownie.UI
                     Url = dialog.LinkUrl,
                     Icon = dialog.LinkIcon
                 });
-                
+
                 // For now, just show a message
-                MessageBox.Show($"Added {dialog.LinkTitle} to quick links!", 
-                    "Link Added", 
-                    MessageBoxButton.OK, 
+                MessageBox.Show($"Added {dialog.LinkTitle} to quick links!",
+                    "Link Added",
+                    MessageBoxButton.OK,
                     MessageBoxImage.Information);
             }
         }
@@ -851,9 +869,36 @@ namespace Zabrownie.UI
 
         private void Maximize_Click(object sender, RoutedEventArgs e)
         {
-            WindowState = WindowState == WindowState.Maximized
-                ? WindowState.Normal
-                : WindowState.Maximized;
+            if (WindowState == WindowState.Maximized)
+            {
+                WindowState = WindowState.Normal;
+            }
+            else
+            {
+                // Obtener el área de trabajo (excluyendo la barra de tareas)
+                var workArea = SystemParameters.WorkArea;
+
+                WindowState = WindowState.Maximized;
+
+                // Asegurar que la ventana respeta la barra de tareas
+                MaxHeight = workArea.Height + 8; // +16 para compensar bordes
+                MaxWidth = workArea.Width;
+            }
+        }
+
+        protected override void OnStateChanged(EventArgs e)
+        {
+            base.OnStateChanged(e);
+
+            if (WindowState == WindowState.Maximized)
+            {
+                var workArea = SystemParameters.WorkArea;
+
+                Top = workArea.Top;
+                Left = workArea.Left;
+                Width = workArea.Width;
+                Height = workArea.Height;
+            }
         }
 
         private void Close_Click(object sender, RoutedEventArgs e)
@@ -967,7 +1012,91 @@ namespace Zabrownie.UI
         [DllImport("user32.dll")]
         private static extern IntPtr SendMessage(
             IntPtr hWnd, int msg, IntPtr wParam, IntPtr lParam);
+
+        private enum ResizeDirection
+        {
+            None,
+            Left,
+            Right,
+            Top,
+            Bottom,
+            TopLeft,
+            TopRight,
+            BottomLeft,
+            BottomRight
+        }
+
+        protected override void OnSourceInitialized(EventArgs e)
+        {
+            base.OnSourceInitialized(e);
+
+            // Agregar hook para mensajes de Windows
+            HwndSource source = HwndSource.FromHwnd(new WindowInteropHelper(this).Handle);
+            source.AddHook(WndProc);
+        }
+
+        private IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
+        {
+            const int WM_NCHITTEST = 0x0084;
+
+            if (msg == WM_NCHITTEST)
+            {
+                Point point = PointFromScreen(new Point(
+                    (short)(lParam.ToInt32() & 0xFFFF),
+                    (short)((lParam.ToInt32() >> 16) & 0xFFFF)));
+
+                ResizeDirection direction = GetResizeDirection(point);
+
+                if (direction != ResizeDirection.None)
+                {
+                    handled = true;
+                    return (IntPtr)GetHitTestValue(direction);
+                }
+                handled = false;
+            }
+
+            return IntPtr.Zero;
+        }
+
+        private ResizeDirection GetResizeDirection(Point point)
+        {
+            const double edgeThickness = 10;
+
+            bool isLeft = point.X <= edgeThickness;
+            bool isRight = point.X >= ActualWidth - edgeThickness;
+            bool isTop = point.Y <= edgeThickness;
+            bool isBottom = point.Y >= ActualHeight - edgeThickness;
+
+            if (isTop && isLeft) return ResizeDirection.TopLeft;
+            if (isTop && isRight) return ResizeDirection.TopRight;
+            if (isBottom && isLeft) return ResizeDirection.BottomLeft;
+            if (isBottom && isRight) return ResizeDirection.BottomRight;
+            if (isLeft) return ResizeDirection.Left;
+            if (isRight) return ResizeDirection.Right;
+            if (isTop) return ResizeDirection.Top;
+            if (isBottom) return ResizeDirection.Bottom;
+
+            return ResizeDirection.None;
+        }
+
+        private int GetHitTestValue(ResizeDirection direction)
+        {
+            return direction switch
+            {
+                ResizeDirection.Left => 10,      // HTLEFT
+                ResizeDirection.Right => 11,     // HTRIGHT
+                ResizeDirection.Top => 12,       // HTTOP
+                ResizeDirection.Bottom => 15,    // HTBOTTOM
+                ResizeDirection.TopLeft => 13,   // HTTOPLEFT
+                ResizeDirection.TopRight => 14,  // HTTOPRIGHT
+                ResizeDirection.BottomLeft => 16,// HTBOTTOMLEFT
+                ResizeDirection.BottomRight => 17,// HTBOTTOMRIGHT
+                _ => 1 // HTCLIENT
+            };
+        }
+
     }
+
 
     // Homepage-related classes
     public class QuickLink
