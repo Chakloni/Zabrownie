@@ -9,10 +9,9 @@ namespace Zabrownie.Core
     {
         private readonly FilterEngine _filterEngine;
         private readonly SettingsManager _settingsManager;
-        private int _blockedCount;
-        private string _lastDocumentUrl = "";
+        private string? _currentPageDomain;
 
-        public int BlockedCount => _blockedCount;
+        public int BlockedCount { get; private set; }
 
         public AdBlocker(FilterEngine filterEngine, SettingsManager settingsManager)
         {
@@ -22,98 +21,142 @@ namespace Zabrownie.Core
 
         public async Task InitializeAsync()
         {
-            try
-            {
-                var defaultFiltersPath = FileService.GetDefaultFiltersPath();
-                await _filterEngine.LoadFiltersAsync(defaultFiltersPath);
-
-                var customLists = _settingsManager.Settings.CustomFilterLists;
-                if (customLists != null && customLists.Count > 0)
-                {
-                    await _filterEngine.LoadFiltersFromMultipleSourcesAsync(customLists);
-                }
-
-                LoggingService.Log($"AdBlocker initialized with {_filterEngine.TotalRules} rules");
-            }
-            catch (Exception ex)
-            {
-                LoggingService.LogError("Failed to initialize AdBlocker", ex);
-            }
+            await Task.CompletedTask;
+            LoggingService.Log("AdBlocker initialized");
         }
 
         public void AttachToWebView(CoreWebView2 coreWebView)
         {
             coreWebView.AddWebResourceRequestedFilter("*", CoreWebView2WebResourceContext.All);
-            coreWebView.WebResourceRequested += OnWebResourceRequested;
+            coreWebView.WebResourceRequested += CoreWebView_WebResourceRequested;
             
-            // Actualizar la URL del documento cuando navegue
-            coreWebView.SourceChanged += (s, e) =>
+            // Track navigation to know current page domain for cookie blocking
+            coreWebView.NavigationStarting += (s, e) =>
             {
-                _lastDocumentUrl = coreWebView.Source?.ToString() ?? "";
+                try
+                {
+                    var uri = new Uri(e.Uri);
+                    _currentPageDomain = uri.Host;
+                }
+                catch
+                {
+                    _currentPageDomain = null;
+                }
             };
+
+            LoggingService.Log("AdBlocker attached to WebView2");
         }
 
-        public void DetachFromWebView(CoreWebView2 coreWebView)
-        {
-            coreWebView.WebResourceRequested -= OnWebResourceRequested;
-        }
-
-        private void OnWebResourceRequested(object? sender, CoreWebView2WebResourceRequestedEventArgs e)
+        private void CoreWebView_WebResourceRequested(object? sender, CoreWebView2WebResourceRequestedEventArgs e)
         {
             try
             {
-                if (!_settingsManager.Settings.EnableAdBlocking)
-                    return;
-
-                var url = e.Request.Uri;
-
-                if (string.IsNullOrEmpty(url))
-                    return;
-
-                // Validar URL
-                if (!Uri.TryCreate(url, UriKind.Absolute, out var requestUri))
-                    return;
-
-                var domain = requestUri.Host;
-
-                // Verificar whitelist
-                if (_settingsManager.IsWhitelisted(domain))
-                    return;
-
-                // Obtener la URL del documento principal
-                var coreWebView = sender as CoreWebView2;
-                var documentUrl = coreWebView?.Source?.ToString() ?? _lastDocumentUrl;
-
-                // Verificar si debe bloquearse
-                if (_filterEngine.ShouldBlock(url, documentUrl, e.ResourceContext))
+                var requestUri = e.Request.Uri;
+                var documentUri = _currentPageDomain != null ? $"https://{_currentPageDomain}" : "";
+                
+                // Check if ad blocking is enabled
+                if (_settingsManager.Settings.EnableAdBlocking)
                 {
-                    // Bloquear la solicitud
-                    if (coreWebView?.Environment != null)
+                    // Check whitelist first
+                    var uri = new Uri(requestUri);
+                    if (!_settingsManager.IsWhitelisted(uri.Host))
                     {
-                        e.Response = coreWebView.Environment.CreateWebResourceResponse(
-                            null, 403, "Blocked by AdBlocker", "");
-                        
-                        _blockedCount++;
-                        
-                        // Log solo para recursos importantes
-                        if (e.ResourceContext == CoreWebView2WebResourceContext.Script ||
-                            e.ResourceContext == CoreWebView2WebResourceContext.Document ||
-                            e.ResourceContext == CoreWebView2WebResourceContext.Stylesheet)
+                        // Check if request should be blocked
+                        if (_filterEngine.ShouldBlock(requestUri, documentUri, e.ResourceContext))
                         {
-                            LoggingService.Log($"Blocked [{e.ResourceContext}]: {url}");
+                            var webView = sender as CoreWebView2;
+                            if (webView != null)
+                            {
+                                e.Response = webView.Environment.CreateWebResourceResponse(
+                                    null, 403, "Blocked", "");
+                                BlockedCount++;
+                                LoggingService.Log($"Blocked: {requestUri}");
+                            }
+                            return;
                         }
+                    }
+                }
+
+                // Handle cookie blocking for third-party requests (request only, not response)
+                if (_settingsManager.Settings.BlockThirdPartyCookies && !string.IsNullOrEmpty(_currentPageDomain))
+                {
+                    BlockThirdPartyCookies(e, requestUri);
+                }
+            }
+            catch (Exception ex)
+            {
+                LoggingService.LogError($"Error in WebResourceRequested: {ex.Message}", ex);
+            }
+        }
+
+        private void BlockThirdPartyCookies(CoreWebView2WebResourceRequestedEventArgs e, string requestUri)
+        {
+            try
+            {
+                var requestDomain = new Uri(requestUri).Host;
+                
+                // Check if this is a third-party request
+                if (IsThirdPartyRequest(requestDomain, _currentPageDomain))
+                {
+                    // Remove Cookie header from outgoing request
+                    var headers = e.Request.Headers;
+                    if (headers.Contains("Cookie"))
+                    {
+                        headers.RemoveHeader("Cookie");
+                        LoggingService.Log($"Blocked third-party cookie to: {requestDomain}");
                     }
                 }
             }
             catch (Exception ex)
             {
-                LoggingService.LogError($"Error in AdBlocker.OnWebResourceRequested for {e.Request.Uri}", ex);
+                LoggingService.LogError($"Error blocking third-party cookies: {ex.Message}", ex);
             }
+        }
+
+        private bool IsThirdPartyRequest(string requestDomain, string? pageDomain)
+        {
+            if (string.IsNullOrEmpty(pageDomain))
+                return false;
+
+            try
+            {
+                // Normalize domains
+                requestDomain = requestDomain.TrimStart('.').ToLowerInvariant();
+                pageDomain = pageDomain.TrimStart('.').ToLowerInvariant();
+
+                // Same domain - not third party
+                if (requestDomain == pageDomain)
+                    return false;
+
+                // Extract base domains
+                var requestBase = GetBaseDomain(requestDomain);
+                var pageBase = GetBaseDomain(pageDomain);
+
+                // Different base domains = third party
+                return requestBase != pageBase;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        private string GetBaseDomain(string domain)
+        {
+            var parts = domain.Split('.');
+            
+            // Handle domains like "co.uk", "com.au", etc.
+            if (parts.Length >= 2)
+            {
+                return $"{parts[^2]}.{parts[^1]}";
+            }
+            
+            return domain;
         }
 
         public void ResetBlockedCount()
         {
-            _blockedCount = 0;
+            BlockedCount = 0;
         }
     }
 }

@@ -643,7 +643,7 @@
 
                                 <!-- Personalized Message - You can customize this -->
                                 <TextBlock x:Name="PersonalGreeting"
-                                           Text="Your personal browsing experience ❤️"
+                                           Text="Your personal browsing experience"
                                            FontSize="18"
                                            Foreground="{StaticResource TextPrimary}"
                                            HorizontalAlignment="Center"

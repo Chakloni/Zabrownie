@@ -116,7 +116,7 @@ namespace Zabrownie.UI
             }
         }
 
-        private async System.Threading.Tasks.Task CreateDefaultFiltersIfNeeded()
+        /* private async System.Threading.Tasks.Task CreateDefaultFiltersIfNeeded()
         {
             var filtersPath = FileService.GetDefaultFiltersPath();
             if (!System.IO.File.Exists(filtersPath))
@@ -144,6 +144,62 @@ namespace Zabrownie.UI
             }
 
             await _filterEngine.LoadFiltersAsync(filtersPath);
+        } */
+
+        private async System.Threading.Tasks.Task CreateDefaultFiltersIfNeeded()
+        {
+            var filtersPath = FileService.GetDefaultFiltersPath();
+            var filtersDirectory = Path.GetDirectoryName(filtersPath);
+
+            // Create default filters if they don't exist
+            if (!System.IO.File.Exists(filtersPath))
+            {
+                var defaultRules = new[]
+                {
+                    "! Default ad-blocking rules",
+                    "||doubleclick.net^",
+                    "||googleadservices.com^",
+                    "||googlesyndication.com^",
+                    "||google-analytics.com^",
+                    "||facebook.com/tr^",
+                    "||facebook.net/tr^",
+                    "/ads.js",
+                    "/advertisement.",
+                    "/banner.",
+                    "ad-banner",
+                    "ad_banner",
+                    "/adserver.",
+                    "||ads.twitter.com^",
+                    "||static.ads-twitter.com^"
+                };
+
+                await FileService.SaveTextFileAsync(filtersPath, defaultRules);
+            }
+
+            // Load all filter lists
+            var filterLists = new List<string> { filtersPath };
+
+            // Add EasyList if it exists
+            if (!string.IsNullOrEmpty(filtersDirectory))
+            {
+                var easyListPath = Path.Combine(filtersDirectory, "easylist.txt");
+                if (File.Exists(easyListPath))
+                {
+                    filterLists.Add(easyListPath);
+                }
+
+                // Add EasyPrivacy if it exists
+                var easyPrivacyPath = Path.Combine(filtersDirectory, "easyprivacy.txt");
+                if (File.Exists(easyPrivacyPath))
+                {
+                    filterLists.Add(easyPrivacyPath);
+                }
+            }
+
+            // Load custom filter lists from settings
+            filterLists.AddRange(_settingsManager.Settings.CustomFilterLists);
+
+            await _filterEngine.LoadFiltersFromMultipleSourcesAsync(filterLists);
         }
 
         private async System.Threading.Tasks.Task CreateNewTabAsync(string url = "homepage")
