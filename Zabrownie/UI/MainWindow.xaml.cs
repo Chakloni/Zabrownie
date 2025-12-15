@@ -791,7 +791,7 @@ namespace Zabrownie.UI
 
             if (show)
             {
-                HomepageSearchBox.Focus();
+                AddressBar.Focus();
                 UpdateClock(); // Update time immediately
             }
         }
