@@ -2,7 +2,7 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Configuración"
-        Height="700"
+        Height="750"
         Width="550"
         WindowStartupLocation="CenterOwner"
         Background="#1A1A1D"
@@ -11,46 +11,28 @@
         ResizeMode="NoResize">
 
     <Window.Resources>
-        <SolidColorBrush x:Key="BgPrimary"
-                         Color="#1A1A1D"/>
-        <SolidColorBrush x:Key="BgSecondary"
-                         Color="#25252A"/>
-        <SolidColorBrush x:Key="BgTertiary"
-                         Color="#2D2D35"/>
-        <!-- <SolidColorBrush x:Key="AccentColor"
-                         Color="#8B5CF6"/> -->
-        <SolidColorBrush x:Key="TextPrimary"
-                         Color="#FFFFFF"/>
-        <SolidColorBrush x:Key="TextSecondary"
-                         Color="#A0A0A8"/>
-        <SolidColorBrush x:Key="BorderColor"
-                         Color="#3A3A45"/>
+        <SolidColorBrush x:Key="BgPrimary" Color="#1A1A1D"/>
+        <SolidColorBrush x:Key="BgSecondary" Color="#25252A"/>
+        <SolidColorBrush x:Key="BgTertiary" Color="#2D2D35"/>
+        <SolidColorBrush x:Key="TextPrimary" Color="#FFFFFF"/>
+        <SolidColorBrush x:Key="TextSecondary" Color="#A0A0A8"/>
+        <SolidColorBrush x:Key="BorderColor" Color="#3A3A45"/>
 
         <!-- Opera GX style ScrollBar -->
-        <Style x:Key="OperaGXScrollBar"
-               TargetType="ScrollBar">
-            <Setter Property="Width"
-                    Value="10"/>
-            <Setter Property="Background"
-                    Value="Transparent"/>
+        <Style x:Key="OperaGXScrollBar" TargetType="ScrollBar">
+            <Setter Property="Width" Value="10"/>
+            <Setter Property="Background" Value="Transparent"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="ScrollBar">
-                        <Grid x:Name="Root"
-                              Background="Transparent">
-                            <Track x:Name="PART_Track"
-                                   IsDirectionReversed="True">
-                                <!-- Invisible buttons (disable arrows) -->
+                        <Grid x:Name="Root" Background="Transparent">
+                            <Track x:Name="PART_Track" IsDirectionReversed="True">
                                 <Track.DecreaseRepeatButton>
-                                    <RepeatButton Command="ScrollBar.LineUpCommand"
-                                                  Opacity="0"/>
+                                    <RepeatButton Command="ScrollBar.LineUpCommand" Opacity="0"/>
                                 </Track.DecreaseRepeatButton>
                                 <Track.IncreaseRepeatButton>
-                                    <RepeatButton Command="ScrollBar.LineDownCommand"
-                                                  Opacity="0"/>
+                                    <RepeatButton Command="ScrollBar.LineDownCommand" Opacity="0"/>
                                 </Track.IncreaseRepeatButton>
-
-                                <!-- The oval thumb -->
                                 <Track.Thumb>
                                     <Thumb>
                                         <Thumb.Template>
@@ -62,17 +44,11 @@
                                                         CornerRadius="10"
                                                         Opacity="0.7"/>
                                                 <ControlTemplate.Triggers>
-                                                    <Trigger Property="IsMouseOver"
-                                                             Value="True">
-                                                        <Setter TargetName="ThumbBorder"
-                                                                Property="Opacity"
-                                                                Value="0.9"/>
+                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                        <Setter TargetName="ThumbBorder" Property="Opacity" Value="0.9"/>
                                                     </Trigger>
-                                                    <Trigger Property="IsDragging"
-                                                             Value="True">
-                                                        <Setter TargetName="ThumbBorder"
-                                                                Property="Opacity"
-                                                                Value="1"/>
+                                                    <Trigger Property="IsDragging" Value="True">
+                                                        <Setter TargetName="ThumbBorder" Property="Opacity" Value="1"/>
                                                     </Trigger>
                                                 </ControlTemplate.Triggers>
                                             </ControlTemplate>
@@ -86,12 +62,9 @@
             </Setter>
         </Style>
 
-        <!-- Apply Opera GX scrollbar to all ScrollViewers -->
         <Style TargetType="ScrollViewer">
-            <Setter Property="VerticalScrollBarVisibility"
-                    Value="Auto"/>
-            <Setter Property="HorizontalScrollBarVisibility"
-                    Value="Disabled"/>
+            <Setter Property="VerticalScrollBarVisibility" Value="Auto"/>
+            <Setter Property="HorizontalScrollBarVisibility" Value="Disabled"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="ScrollViewer">
@@ -100,9 +73,7 @@
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
-
                             <ScrollContentPresenter Grid.Column="0"/>
-
                             <ScrollBar Grid.Column="1"
                                        Orientation="Vertical"
                                        Value="{TemplateBinding VerticalOffset}"
@@ -117,89 +88,60 @@
         </Style>
 
         <Style TargetType="GroupBox">
-            <Setter Property="Foreground"
-                    Value="{StaticResource TextPrimary}"/>
-            <Setter Property="BorderBrush"
-                    Value="{StaticResource BorderColor}"/>
-            <Setter Property="BorderThickness"
-                    Value="1"/>
-            <Setter Property="Margin"
-                    Value="0,0,0,16"/>
-            <Setter Property="Padding"
-                    Value="12"/>
+            <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderColor}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Margin" Value="0,0,0,16"/>
+            <Setter Property="Padding" Value="12"/>
         </Style>
 
         <Style TargetType="CheckBox">
-            <Setter Property="Foreground"
-                    Value="{StaticResource TextPrimary}"/>
-            <Setter Property="Margin"
-                    Value="0,0,0,8"/>
+            <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
+            <Setter Property="Margin" Value="0,0,0,8"/>
         </Style>
 
         <Style TargetType="TextBlock">
-            <Setter Property="Foreground"
-                    Value="{StaticResource TextPrimary}"/>
+            <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
         </Style>
 
         <Style TargetType="TextBox">
-            <Setter Property="Background"
-                    Value="{StaticResource BgTertiary}"/>
-            <Setter Property="Foreground"
-                    Value="{StaticResource TextPrimary}"/>
-            <Setter Property="BorderBrush"
-                    Value="{StaticResource BorderColor}"/>
-            <Setter Property="Padding"
-                    Value="8,4"/>
-            <Setter Property="CaretBrush"
-                    Value="{DynamicResource AccentColor}"/>
+            <Setter Property="Background" Value="{StaticResource BgTertiary}"/>
+            <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderColor}"/>
+            <Setter Property="Padding" Value="8,4"/>
+            <Setter Property="CaretBrush" Value="{DynamicResource AccentColor}"/>
         </Style>
 
         <Style TargetType="ComboBox">
-            <Setter Property="Background"
-                    Value="{StaticResource BgTertiary}"/>
-            <Setter Property="Foreground"
-                    Value="{StaticResource TextPrimary}"/>
-            <Setter Property="BorderBrush"
-                    Value="{StaticResource BorderColor}"/>
+            <Setter Property="Background" Value="{StaticResource BgTertiary}"/>
+            <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderColor}"/>
         </Style>
 
         <Style TargetType="ListBox">
-            <Setter Property="Background"
-                    Value="{StaticResource BgTertiary}"/>
-            <Setter Property="Foreground"
-                    Value="{StaticResource TextPrimary}"/>
-            <Setter Property="BorderBrush"
-                    Value="{StaticResource BorderColor}"/>
+            <Setter Property="Background" Value="{StaticResource BgTertiary}"/>
+            <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderColor}"/>
         </Style>
 
-        <Style x:Key="AccentButton"
-               TargetType="Button">
-            <Setter Property="Background"
-                    Value="{DynamicResource AccentColor}"/>
-            <Setter Property="Foreground"
-                    Value="White"/>
-            <Setter Property="BorderThickness"
-                    Value="0"/>
-            <Setter Property="Padding"
-                    Value="16,8"/>
-            <Setter Property="Cursor"
-                    Value="Hand"/>
+        <Style x:Key="AccentButton" TargetType="Button">
+            <Setter Property="Background" Value="{DynamicResource AccentColor}"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="16,8"/>
+            <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Border Background="{TemplateBinding Background}"
-                                CornerRadius="6">
-                            <ContentPresenter HorizontalAlignment="Center"
-                                              VerticalAlignment="Center"/>
+                        <Border Background="{TemplateBinding Background}" CornerRadius="6">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
             <Style.Triggers>
-                <Trigger Property="IsMouseOver"
-                         Value="True">
-                    <Setter Property="Opacity"
-                            Value="0.9"/>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Opacity" Value="0.9"/>
                 </Trigger>
             </Style.Triggers>
         </Style>
@@ -211,80 +153,44 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <ScrollViewer Grid.Row="0"
-                      VerticalScrollBarVisibility="Auto">
+        <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto">
             <StackPanel>
                 <!-- Color de acento -->
                 <GroupBox Header="🎨 Color de Acento">
                     <StackPanel>
-                        <TextBlock Text="Colores predefinidos:"
-                                   Margin="0,0,0,8"/>
-                        <UniformGrid Columns="4"
-                                     HorizontalAlignment="Left">
-                            <Button Content="●"
-                                    FontSize="32"
-                                    Width="60"
-                                    Height="60"
-                                    Foreground="#8B5CF6"
-                                    Background="Transparent"
-                                    BorderThickness="1"
-                                    BorderBrush="{StaticResource BorderColor}"
-                                    Click="PresetColor_Click"
-                                    Tag="#8B5CF6"
-                                    Margin="0,0,4,0"
-                                    ToolTip="Morado"/>
-                            <Button Content="●"
-                                    FontSize="32"
-                                    Width="60"
-                                    Height="60"
-                                    Foreground="#FF006B"
-                                    Background="Transparent"
-                                    BorderThickness="1"
-                                    BorderBrush="{StaticResource BorderColor}"
-                                    Click="PresetColor_Click"
-                                    Tag="#FF006B"
-                                    Margin="0,0,4,0"
-                                    ToolTip="Rosa"/>
-                            <Button Content="●"
-                                    FontSize="32"
-                                    Width="60"
-                                    Height="60"
-                                    Foreground="#00D9FF"
-                                    Background="Transparent"
-                                    BorderThickness="1"
-                                    BorderBrush="{StaticResource BorderColor}"
-                                    Click="PresetColor_Click"
-                                    Tag="#00D9FF"
-                                    Margin="0,0,4,0"
-                                    ToolTip="Cyan"/>
-                            <Button Content="●"
-                                    FontSize="32"
-                                    Width="60"
-                                    Height="60"
-                                    Foreground="#00FF88"
-                                    Background="Transparent"
-                                    BorderThickness="1"
-                                    BorderBrush="{StaticResource BorderColor}"
-                                    Click="PresetColor_Click"
-                                    Tag="#00FF88"
+                        <TextBlock Text="Colores predefinidos:" Margin="0,0,0,8"/>
+                        <UniformGrid Columns="4" HorizontalAlignment="Left">
+                            <Button Content="●" FontSize="32" Width="60" Height="60"
+                                    Foreground="#8B5CF6" Background="Transparent"
+                                    BorderThickness="1" BorderBrush="{StaticResource BorderColor}"
+                                    Click="PresetColor_Click" Tag="#8B5CF6"
+                                    Margin="0,0,4,0" ToolTip="Morado"/>
+                            <Button Content="●" FontSize="32" Width="60" Height="60"
+                                    Foreground="#FF006B" Background="Transparent"
+                                    BorderThickness="1" BorderBrush="{StaticResource BorderColor}"
+                                    Click="PresetColor_Click" Tag="#FF006B"
+                                    Margin="0,0,4,0" ToolTip="Rosa"/>
+                            <Button Content="●" FontSize="32" Width="60" Height="60"
+                                    Foreground="#00D9FF" Background="Transparent"
+                                    BorderThickness="1" BorderBrush="{StaticResource BorderColor}"
+                                    Click="PresetColor_Click" Tag="#00D9FF"
+                                    Margin="0,0,4,0" ToolTip="Cyan"/>
+                            <Button Content="●" FontSize="32" Width="60" Height="60"
+                                    Foreground="#00FF88" Background="Transparent"
+                                    BorderThickness="1" BorderBrush="{StaticResource BorderColor}"
+                                    Click="PresetColor_Click" Tag="#00FF88"
                                     ToolTip="Verde"/>
                         </UniformGrid>
 
-                        <TextBlock Text="Color personalizado (Hex):"
-                                   Margin="0,16,0,8"/>
+                        <TextBlock Text="Color personalizado (Hex):" Margin="0,16,0,8"/>
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
-                            <TextBox x:Name="CustomColorTextBox"
-                                     Grid.Column="0"
-                                     Text="#8B5CF6"
-                                     Margin="0,0,8,0"/>
-                            <Button Grid.Column="1"
-                                    Content="Aplicar"
-                                    Margin="2,2,1,1"
-                                    Padding="2,2,1,1"
+                            <TextBox x:Name="CustomColorTextBox" Grid.Column="0"
+                                     Text="#8B5CF6" Margin="0,0,8,0"/>
+                            <Button Grid.Column="1" Content="Aplicar"
                                     Style="{StaticResource AccentButton}"
                                     Click="ApplyCustomColor_Click"/>
                         </Grid>
@@ -294,35 +200,51 @@
                 <!-- Privacidad -->
                 <GroupBox Header="🔒 Privacidad">
                     <StackPanel>
-                        <CheckBox x:Name="EnableAdBlockingCheckBox"
-                                  Content="Bloquear anuncios"/>
-                        <CheckBox x:Name="StripTrackingParamsCheckBox"
-                                  Content="Eliminar parámetros de rastreo"/>
-                        <CheckBox x:Name="BlockThirdPartyCookiesCheckBox"
-                                  Content="Bloquear cookies de terceros"/>
-                        <CheckBox x:Name="ClearDataOnCloseCheckBox"
-                                  Content="Limpiar datos al cerrar"/>
+                        <TextBlock Text="Bloqueo y Rastreo:" FontWeight="Bold" 
+                                   Foreground="{DynamicResource AccentColor}" Margin="0,0,0,8"/>
+                        <CheckBox x:Name="EnableAdBlockingCheckBox" Content="Bloquear anuncios"/>
+                        <CheckBox x:Name="StripTrackingParamsCheckBox" Content="Eliminar parámetros de rastreo (utm_*, gclid, etc.)"/>
+                        <CheckBox x:Name="BlockThirdPartyCookiesCheckBox" Content="Bloquear cookies de terceros"/>
+                        <CheckBox x:Name="SendDoNotTrackCheckBox" Content="Enviar header 'Do Not Track' (DNT)"/>
+                        
+                        <TextBlock Text="Seguridad:" FontWeight="Bold" 
+                                   Foreground="{DynamicResource AccentColor}" Margin="0,12,0,8"/>
+                        <CheckBox x:Name="DisablePasswordSavingCheckBox" Content="Deshabilitar guardado de contraseñas"/>
+                        <CheckBox x:Name="DisableAutofillCheckBox" Content="Deshabilitar autocompletado de formularios"/>
+                        <CheckBox x:Name="BlockWebRTCCheckBox" Content="Bloquear WebRTC (previene filtración de IP real)"/>
+                        
+                        <TextBlock Text="Datos:" FontWeight="Bold" 
+                                   Foreground="{DynamicResource AccentColor}" Margin="0,12,0,8"/>
+                        <CheckBox x:Name="ClearDataOnCloseCheckBox" Content="Limpiar datos de navegación al cerrar"/>
+                        
+                        <TextBlock Text="Referrer Policy:" Margin="0,12,0,4"/>
+                        <ComboBox x:Name="ReferrerPolicyComboBox" SelectedIndex="1">
+                            <ComboBoxItem Content="No Referrer (máxima privacidad)" Tag="no-referrer"/>
+                            <ComboBoxItem Content="No Referrer When Downgrade (recomendado)" Tag="no-referrer-when-downgrade"/>
+                            <ComboBoxItem Content="Origin Only" Tag="origin"/>
+                            <ComboBoxItem Content="Same Origin Only" Tag="same-origin"/>
+                            <ComboBoxItem Content="Strict Origin" Tag="strict-origin"/>
+                        </ComboBox>
+                        <TextBlock Text="Controla qué información se envía en el header 'Referer' al navegar."
+                                   Foreground="{StaticResource TextSecondary}" FontSize="11"
+                                   TextWrapping="Wrap" Margin="0,4,0,0"/>
                     </StackPanel>
                 </GroupBox>
 
                 <!-- JavaScript -->
                 <GroupBox Header="⚡ JavaScript">
-                    <CheckBox x:Name="EnableJavaScriptCheckBox"
-                              Content="Habilitar JavaScript (Global)"/>
+                    <CheckBox x:Name="EnableJavaScriptCheckBox" Content="Habilitar JavaScript (Global)"/>
                 </GroupBox>
 
                 <!-- Página de inicio -->
                 <GroupBox Header="🏠 Página de Inicio">
-                    <TextBox x:Name="HomepageTextBox"
-                             Padding="8,4"/>
+                    <TextBox x:Name="HomepageTextBox" Padding="8,4"/>
                 </GroupBox>
 
                 <!-- User Agent -->
                 <GroupBox Header="🌐 User Agent (Opcional)">
-                    <TextBox x:Name="UserAgentTextBox"
-                             Padding="8,4"
-                             TextWrapping="Wrap"
-                             Height="60"/>
+                    <TextBox x:Name="UserAgentTextBox" Padding="8,4"
+                             TextWrapping="Wrap" Height="60"/>
                 </GroupBox>
 
                 <!-- Dominios en lista blanca -->
@@ -333,24 +255,16 @@
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
-                            <TextBox x:Name="WhitelistDomainTextBox"
-                                     Grid.Column="0"
-                                     Padding="8,4"
-                                     Margin="0,0,8,0"/>
-                            <Button x:Name="AddWhitelistButton"
-                                    Grid.Column="1"
-                                    Content="Agregar"
-                                    Style="{StaticResource AccentButton}"
+                            <TextBox x:Name="WhitelistDomainTextBox" Grid.Column="0"
+                                     Padding="8,4" Margin="0,0,8,0"/>
+                            <Button x:Name="AddWhitelistButton" Grid.Column="1"
+                                    Content="Agregar" Style="{StaticResource AccentButton}"
                                     Click="AddWhitelistButton_Click"/>
                         </Grid>
 
-                        <ListBox x:Name="WhitelistListBox"
-                                 Height="120"
-                                 Margin="0,0,0,8"/>
-                        <Button x:Name="RemoveWhitelistButton"
-                                Content="Eliminar Seleccionado"
-                                Width="150"
-                                HorizontalAlignment="Left"
+                        <ListBox x:Name="WhitelistListBox" Height="120" Margin="0,0,0,8"/>
+                        <Button x:Name="RemoveWhitelistButton" Content="Eliminar Seleccionado"
+                                Width="150" HorizontalAlignment="Left"
                                 Click="RemoveWhitelistButton_Click"
                                 Style="{StaticResource AccentButton}"/>
                     </StackPanel>
@@ -359,16 +273,12 @@
                 <!-- Estadísticas de filtros -->
                 <GroupBox Header="📊 Estadísticas">
                     <StackPanel>
-                        <TextBlock x:Name="FilterStatsText"
-                                   Margin="0,0,0,8"/>
+                        <TextBlock x:Name="FilterStatsText" Margin="0,0,0,8"/>
                         <TextBlock x:Name="BlockedCountText"
                                    Foreground="{DynamicResource AccentColor}"
-                                   FontWeight="Bold"
-                                   FontSize="14"
-                                   Margin="0,0,0,8"/>
+                                   FontWeight="Bold" FontSize="14" Margin="0,0,0,8"/>
                         <Button Content="Limpiar caché de decisiones"
-                                Width="200"
-                                HorizontalAlignment="Left"
+                                Width="200" HorizontalAlignment="Left"
                                 Click="ClearCacheButton_Click"
                                 Style="{StaticResource AccentButton}"/>
                     </StackPanel>
@@ -377,23 +287,16 @@
         </ScrollViewer>
 
         <!-- Botones de acción -->
-        <StackPanel Grid.Row="1"
-                    Orientation="Horizontal"
-                    HorizontalAlignment="Right"
-                    Margin="0,16,0,0">
-            <Button Content="Guardar"
-                    Width="100"
-                    Margin="0,0,8,0"
+        <StackPanel Grid.Row="1" Orientation="Horizontal"
+                    HorizontalAlignment="Right" Margin="0,16,0,0">
+            <Button Content="Guardar" Width="100" Margin="0,0,8,0"
                     Style="{StaticResource AccentButton}"
                     Click="SaveButton_Click"/>
-            <Button Content="Cancelar"
-                    Width="100"
+            <Button Content="Cancelar" Width="100"
                     Background="{StaticResource BgTertiary}"
                     Foreground="{StaticResource TextPrimary}"
-                    BorderThickness="1"
-                    BorderBrush="{StaticResource BorderColor}"
-                    Padding="16,8"
-                    Click="CancelButton_Click">
+                    BorderThickness="1" BorderBrush="{StaticResource BorderColor}"
+                    Padding="16,8" Click="CancelButton_Click">
                 <Button.Style>
                     <Style TargetType="Button">
                         <Setter Property="Template">
@@ -409,13 +312,10 @@
                                 </ControlTemplate>
                             </Setter.Value>
                         </Setter>
-                        <Setter Property="Cursor"
-                                Value="Hand"/>
+                        <Setter Property="Cursor" Value="Hand"/>
                         <Style.Triggers>
-                            <Trigger Property="IsMouseOver"
-                                     Value="True">
-                                <Setter Property="Opacity"
-                                        Value="0.8"/>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Opacity" Value="0.8"/>
                             </Trigger>
                         </Style.Triggers>
                     </Style>

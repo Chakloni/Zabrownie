@@ -37,21 +37,44 @@ namespace Zabrownie.UI
         {
             var settings = _settingsManager.Settings;
             
+            // Basic privacy settings
             EnableAdBlockingCheckBox.IsChecked = settings.EnableAdBlocking;
             StripTrackingParamsCheckBox.IsChecked = settings.StripTrackingParams;
             BlockThirdPartyCookiesCheckBox.IsChecked = settings.BlockThirdPartyCookies;
             ClearDataOnCloseCheckBox.IsChecked = settings.ClearDataOnClose;
+            
+            // New privacy settings
+            SendDoNotTrackCheckBox.IsChecked = settings.SendDoNotTrack;
+            DisablePasswordSavingCheckBox.IsChecked = settings.DisablePasswordSaving;
+            DisableAutofillCheckBox.IsChecked = settings.DisableAutofill;
+            BlockWebRTCCheckBox.IsChecked = settings.BlockWebRTC;
+            
+            // Referrer policy
+            var referrerPolicy = settings.ReferrerPolicy;
+            for (int i = 0; i < ReferrerPolicyComboBox.Items.Count; i++)
+            {
+                var item = ReferrerPolicyComboBox.Items[i] as ComboBoxItem;
+                if (item?.Tag?.ToString() == referrerPolicy)
+                {
+                    ReferrerPolicyComboBox.SelectedIndex = i;
+                    break;
+                }
+            }
+            
+            // JavaScript and general settings
             EnableJavaScriptCheckBox.IsChecked = settings.EnableJavaScript;
             HomepageTextBox.Text = settings.Homepage;
             UserAgentTextBox.Text = settings.UserAgent;
             CustomColorTextBox.Text = settings.AccentColor;
 
+            // Whitelist
             WhitelistListBox.Items.Clear();
             foreach (var entry in settings.Whitelist)
             {
                 WhitelistListBox.Items.Add(entry.Domain);
             }
 
+            // Statistics
             FilterStatsText.Text = $"Reglas de filtro cargadas: {_filterEngine.TotalRules}";
             BlockedCountText.Text = $"🛡️ Total de anuncios bloqueados: {_totalBlockedCount}";
         }
@@ -120,14 +143,30 @@ namespace Zabrownie.UI
         {
             var settings = _settingsManager.Settings;
             
+            // Basic privacy settings
             settings.EnableAdBlocking = EnableAdBlockingCheckBox.IsChecked ?? true;
             settings.StripTrackingParams = StripTrackingParamsCheckBox.IsChecked ?? true;
             settings.BlockThirdPartyCookies = BlockThirdPartyCookiesCheckBox.IsChecked ?? true;
             settings.ClearDataOnClose = ClearDataOnCloseCheckBox.IsChecked ?? false;
+            
+            // New privacy settings
+            settings.SendDoNotTrack = SendDoNotTrackCheckBox.IsChecked ?? true;
+            settings.DisablePasswordSaving = DisablePasswordSavingCheckBox.IsChecked ?? true;
+            settings.DisableAutofill = DisableAutofillCheckBox.IsChecked ?? true;
+            settings.BlockWebRTC = BlockWebRTCCheckBox.IsChecked ?? false;
+            
+            // Referrer policy
+            if (ReferrerPolicyComboBox.SelectedItem is ComboBoxItem selectedItem)
+            {
+                settings.ReferrerPolicy = selectedItem.Tag?.ToString() ?? "no-referrer-when-downgrade";
+            }
+            
+            // JavaScript and general settings
             settings.EnableJavaScript = EnableJavaScriptCheckBox.IsChecked ?? true;
             settings.Homepage = HomepageTextBox.Text;
             settings.UserAgent = UserAgentTextBox.Text;
             
+            // Accent color
             var color = CustomColorTextBox.Text.Trim();
             if (!color.StartsWith("#"))
                 color = "#" + color;
@@ -140,7 +179,7 @@ namespace Zabrownie.UI
 
             await _settingsManager.SaveAsync();
             
-            MessageBox.Show("Configuración guardada correctamente. Algunos cambios pueden requerir reiniciar.", 
+            MessageBox.Show("Configuración guardada correctamente. Algunos cambios pueden requerir reiniciar el navegador para aplicarse completamente.", 
                 "Éxito", MessageBoxButton.OK, MessageBoxImage.Information);
             
             DialogResult = true;

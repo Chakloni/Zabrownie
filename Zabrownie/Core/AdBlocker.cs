@@ -54,6 +54,16 @@ namespace Zabrownie.Core
                 var requestUri = e.Request.Uri;
                 var documentUri = _currentPageDomain != null ? $"https://{_currentPageDomain}" : "";
                 
+                // Add Do Not Track header if enabled
+                if (_settingsManager.Settings.SendDoNotTrack)
+                {
+                    var headers = e.Request.Headers;
+                    if (!headers.Contains("DNT"))
+                    {
+                        headers.SetHeader("DNT", "1");
+                    }
+                }
+                
                 // Check if ad blocking is enabled
                 if (_settingsManager.Settings.EnableAdBlocking)
                 {
@@ -105,6 +115,10 @@ namespace Zabrownie.Core
                         headers.RemoveHeader("Cookie");
                         LoggingService.Log($"Blocked third-party cookie to: {requestDomain}");
                     }
+                    
+                    // Note: Response headers are read-only in WebView2
+                    // Third-party cookies are blocked by removing the Cookie header from requests
+                    // This prevents the browser from sending cookies to third-party domains
                 }
             }
             catch (Exception ex)

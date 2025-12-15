@@ -11,8 +11,15 @@ namespace Zabrownie.Models
         public bool StripTrackingParams { get; set; } = true;
         public bool ClearDataOnClose { get; set; } = false;
         public string UserAgent { get; set; } = "";
-        //public string AccentColor { get; set; } = "#8B5CF6";
         public string AccentColor { get; set; } = "#FF006B";
+        
+        // New Privacy Settings
+        public bool SendDoNotTrack { get; set; } = true;
+        public bool DisablePasswordSaving { get; set; } = true;
+        public bool DisableAutofill { get; set; } = true;
+        public string ReferrerPolicy { get; set; } = "no-referrer-when-downgrade"; // Options: "no-referrer", "no-referrer-when-downgrade", "origin", "same-origin", "strict-origin"
+        public bool BlockWebRTC { get; set; } = false;
+        
         public List<SiteWhitelistEntry> Whitelist { get; set; } = new List<SiteWhitelistEntry>();
         public List<string> CustomFilterLists { get; set; } = new List<string>();
         public Dictionary<string, bool> PerSiteJavaScript { get; set; } = new Dictionary<string, bool>();
