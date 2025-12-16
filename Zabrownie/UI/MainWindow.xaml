@@ -4,8 +4,8 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:wv2="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
         Title="Zabrownie"
-        Height="800"
-        Width="1200"
+        Height="Auto"
+        Width="Auto"
         Loaded="Window_Loaded"
         Closing="Window_Closing"
         WindowStyle="None"
@@ -55,10 +55,6 @@
                          Color="#25252A"/>
         <SolidColorBrush x:Key="BgTertiary"
                          Color="#2D2D35"/>
-        <!-- <SolidColorBrush x:Key="AccentColor"
-                         Color="#8B5CF6"/> -->
-        <!-- <SolidColorBrush x:Key="AccentHover"
-                         Color="#A78BFA"/> -->
         <SolidColorBrush x:Key="TextPrimary"
                          Color="#FFFFFF"/>
         <SolidColorBrush x:Key="TextSecondary"
@@ -227,7 +223,7 @@
             <Setter Property="Width"
                     Value="40"/>
             <Setter Property="Height"
-                    Value="40"/>
+                    Value="35"/>
             <Setter Property="FontSize"
                     Value="16"/>
             <Setter Property="Cursor"
@@ -340,7 +336,7 @@
                     Background="{StaticResource BgSecondary}"
                     CornerRadius="12,12,0,0"
                     MouseLeftButtonDown="TitleBar_MouseLeftButtonDown">
-                <Grid Height="45">
+                <Grid Height="40">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="*"/>
@@ -367,7 +363,7 @@
 
                     <!-- Tabs -->
                     <Border Grid.Column="1"
-                            MouseLeftButtonDown="StopDrag">
+                            MouseLeftButtonDown="Move_MouseLeftButtonDown">
                         <ScrollViewer
                             Style="{StaticResource OperaGXScrollViewer}"
                             HorizontalScrollBarVisibility="Auto"
@@ -383,6 +379,7 @@
                                     <DataTemplate>
                                         <Button Style="{StaticResource TabButtonStyle}"
                                                 Click="Tab_Click"
+                                                MouseLeftButtonDown="StopDrag"
                                                 Tag="{Binding}">
                                             <Grid>
                                                 <Grid.ColumnDefinitions>
@@ -391,7 +388,7 @@
                                                 </Grid.ColumnDefinitions>
                                                 <TextBlock Grid.Column="0"
                                                            Text="{Binding Title}"
-                                                           MaxWidth="150"
+                                                           Width="125"
                                                            TextTrimming="CharacterEllipsis"
                                                            VerticalAlignment="Center"
                                                            Margin="0,0,12,0"/>
@@ -457,18 +454,18 @@
                                 Margin="8,0,8,0">
                         <Button Content="—"
                                 Width="40"
-                                Height="40"
+                                Height="35"
                                 Click="Minimize_Click"
                                 Style="{StaticResource NavButtonStyle}"/>
                         <Button Content="▢"
                                 Width="40"
-                                Height="40"
+                                Height="35"
                                 Click="Maximize_Click"
                                 Style="{StaticResource NavButtonStyle}"
                                 Margin="4,0,0,0"/>
                         <Button Content="✕"
                                 Width="40"
-                                Height="40"
+                                Height="35"
                                 Click="Close_Click"
                                 Foreground="{StaticResource TextSecondary}"
                                 Margin="4,0,0,0">
@@ -495,7 +492,7 @@
             <Border Grid.Row="1"
                     x:Name="NavigationBar"
                     Background="{StaticResource BgPrimary}"
-                    Padding="12,12">
+                    Padding="8,8">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>
@@ -537,7 +534,7 @@
                             BorderBrush="{StaticResource BorderColor}"
                             BorderThickness="1"
                             CornerRadius="8"
-                            Height="40">
+                            Height="35">
                         <TextBox x:Name="AddressBar"
                                  VerticalContentAlignment="Center"
                                  Padding="16,0"
@@ -713,10 +710,10 @@
                                             Padding="16,10"
                                             Width="120"/>
 
-                                    <Button Content="Netflix"
+                                    <Button Content="WhatsApp"
                                             Style="{StaticResource NavButtonStyle}"
                                             Click="QuickLink_Click"
-                                            Tag="https://netflix.com"
+                                            Tag="https://web.Whatsapp.com"
                                             Margin="4"
                                             Padding="16,10"
                                             Width="120"/>

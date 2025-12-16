@@ -28,10 +28,10 @@ namespace Zabrownie.UI
         private CoreWebView2Environment? _webViewEnvironment;
 
         // Homepage-related fields
-        private List<QuickLink> _quickLinks = new();
-        private List<RecentSite> _recentSites = new();
+        private List<QuickLink> _quickLinks = [];
+        private List<RecentSite> _recentSites = [];
         private DispatcherTimer? _clockTimer; // Made nullable
-        private Stack<BrowserTab> _closedTabs = new();
+        private readonly Stack<BrowserTab> _closedTabs = new();
 
         public ICommand NewTabCommand { get; }
         public ICommand CloseTabCommand { get; }
@@ -61,8 +61,8 @@ namespace Zabrownie.UI
             ZoomInCommand = new RelayCommand(_ => ChangeZoom(0.25));
             ZoomOutCommand = new RelayCommand(_ => ChangeZoom(-0.25));
             ZoomResetCommand = new RelayCommand(_ => ChangeZoom(0, true));
-
             DataContext = this;
+
             _settingsManager = new SettingsManager();
             _filterEngine = new FilterEngine();
             _tabManager = new TabManager();
@@ -104,7 +104,8 @@ namespace Zabrownie.UI
                 InitializeHomepage();
 
                 // Create initial tab - use "homepage" to show the homepage
-                await CreateNewTabAsync(_settingsManager.Settings.Homepage ?? "homepage");
+                //await CreateNewTabAsync(_settingsManager.Settings.Homepage ?? "homepage");
+                await CreateNewTabAsync("homepage");
             }
             catch (Exception ex)
             {
@@ -115,36 +116,6 @@ namespace Zabrownie.UI
                     "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
-
-        /* private async System.Threading.Tasks.Task CreateDefaultFiltersIfNeeded()
-        {
-            var filtersPath = FileService.GetDefaultFiltersPath();
-            if (!System.IO.File.Exists(filtersPath))
-            {
-                var defaultRules = new[]
-                {
-                    "! Default ad-blocking rules",
-                    "||doubleclick.net^",
-                    "||googleadservices.com^",
-                    "||googlesyndication.com^",
-                    "||google-analytics.com^",
-                    "||facebook.com/tr^",
-                    "||facebook.net/tr^",
-                    "/ads.js",
-                    "/advertisement.",
-                    "/banner.",
-                    "ad-banner",
-                    "ad_banner",
-                    "/adserver.",
-                    "||ads.twitter.com^",
-                    "||static.ads-twitter.com^"
-                };
-
-                await FileService.SaveTextFileAsync(filtersPath, defaultRules);
-            }
-
-            await _filterEngine.LoadFiltersAsync(filtersPath);
-        } */
 
         private async System.Threading.Tasks.Task CreateDefaultFiltersIfNeeded()
         {
@@ -910,6 +881,18 @@ namespace Zabrownie.UI
             }
         }
 
+        private void Move_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            try
+            {
+                DragMove();
+            }
+            catch (Exception ex)
+            {
+                LoggingService.LogError("Error during window drag", ex);
+            }
+        }
+
         private void StopDrag(object sender, MouseButtonEventArgs e)
         {
             // Prevent drag event from bubbling up
@@ -1135,7 +1118,7 @@ namespace Zabrownie.UI
             return ResizeDirection.None;
         }
 
-        private int GetHitTestValue(ResizeDirection direction)
+        private static int GetHitTestValue(ResizeDirection direction)
         {
             return direction switch
             {
