@@ -1,6 +1,7 @@
 using Zabrownie.Models;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System;
 
 namespace Zabrownie.Core
 {
@@ -78,6 +79,23 @@ namespace Zabrownie.Core
             }
             Tabs.Clear();
             ActiveTab = null;
+        }
+
+        public void MoveTab(BrowserTab tab, int newIndex)
+        {
+            var oldIndex = Tabs.IndexOf(tab);
+            if (oldIndex == -1 || oldIndex == newIndex)
+                return;
+
+            // Clamp newIndex to valid range
+            newIndex = Math.Clamp(newIndex, 0, Tabs.Count - 1);
+            
+            Tabs.Move(oldIndex, newIndex);
+        }
+
+        public int GetTabIndex(BrowserTab tab)
+        {
+            return Tabs.IndexOf(tab);
         }
     }
 }

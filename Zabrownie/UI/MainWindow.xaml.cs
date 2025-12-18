@@ -46,6 +46,9 @@ namespace Zabrownie.UI
         public ICommand ZoomOutCommand { get; }
         public ICommand ZoomResetCommand { get; }
 
+        private BrowserTab? _draggedTab = null;
+        private Point _dragStartPoint;
+
         public MainWindow()
         {
             InitializeComponent();
@@ -431,6 +434,74 @@ namespace Zabrownie.UI
                     ShowTab(_tabManager.Tabs[0]);
                 }
             }
+        }
+
+        private void Tab_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            // Don't start drag if clicking the close button
+            if (e.OriginalSource is Button closeButton && closeButton.Content?.ToString() == "✕")
+                return;
+
+            if (sender is Button button && button.Tag is BrowserTab tab)
+            {
+                _dragStartPoint = e.GetPosition(null);
+                _draggedTab = tab;
+            }
+        }
+
+        private void Tab_PreviewMouseMove(object sender, MouseEventArgs e)
+        {
+            if (e.LeftButton == MouseButtonState.Pressed && 
+                _draggedTab != null && 
+                sender is Button button)
+            {
+                Point currentPosition = e.GetPosition(null);
+                Vector diff = _dragStartPoint - currentPosition;
+
+                // Only start drag if moved enough (prevents accidental drags)
+                if (Math.Abs(diff.X) > SystemParameters.MinimumHorizontalDragDistance ||
+                    Math.Abs(diff.Y) > SystemParameters.MinimumVerticalDragDistance)
+                {
+                    // Create drag data
+                    DataObject dragData = new DataObject("BrowserTab", _draggedTab);
+                    DragDrop.DoDragDrop(button, dragData, DragDropEffects.Move);
+                    
+                    _draggedTab = null; // Reset after drag
+                }
+            }
+        }
+
+        private void Tab_DragOver(object sender, DragEventArgs e)
+        {
+            if (!e.Data.GetDataPresent("BrowserTab"))
+            {
+                e.Effects = DragDropEffects.None;
+                return;
+            }
+
+            e.Effects = DragDropEffects.Move;
+            e.Handled = true;
+        }
+
+        private void Tab_Drop(object sender, DragEventArgs e)
+        {
+            if (e.Data.GetDataPresent("BrowserTab") && 
+                sender is Button button && 
+                button.Tag is BrowserTab targetTab)
+            {
+                var draggedTab = e.Data.GetData("BrowserTab") as BrowserTab;
+                
+                if (draggedTab != null && draggedTab != targetTab)
+                {
+                    int newIndex = _tabManager.GetTabIndex(targetTab);
+                    _tabManager.MoveTab(draggedTab, newIndex);
+                    
+                    LoggingService.Log($"Moved tab '{draggedTab.Title}' to position {newIndex}");
+                }
+            }
+
+            _draggedTab = null;
+            e.Handled = true;
         }
 
         private void BackButton_Click(object sender, RoutedEventArgs e)

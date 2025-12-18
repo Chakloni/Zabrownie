@@ -379,7 +379,11 @@
                                     <DataTemplate>
                                         <Button Style="{StaticResource TabButtonStyle}"
                                                 Click="Tab_Click"
-                                                MouseLeftButtonDown="StopDrag"
+                                                AllowDrop="True"
+                                                PreviewMouseLeftButtonDown="Tab_PreviewMouseLeftButtonDown"
+                                                PreviewMouseMove="Tab_PreviewMouseMove"
+                                                Drop="Tab_Drop"
+                                                DragOver="Tab_DragOver"
                                                 Tag="{Binding}">
                                             <Grid>
                                                 <Grid.ColumnDefinitions>
