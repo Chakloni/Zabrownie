@@ -45,6 +45,9 @@
         <KeyBinding Key="D0"
                     Modifiers="Control"
                     Command="{Binding ZoomResetCommand}"/>
+
+        <KeyBinding Gesture="Ctrl+Shift+T" 
+                    Command="{Binding ReopenClosedTabCommand}" />
     </Window.InputBindings>
 
     <Window.Resources>
@@ -548,8 +551,7 @@
                                  BorderThickness="0"
                                  CaretBrush="{DynamicResource AccentColor}"
                                  KeyDown="AddressBar_KeyDown"
-                                 GotFocus="AddressBar_GotFocus"
-                                 Text="Escribe URL o busca..."/>
+                                 GotFocus="AddressBar_GotFocus"/>
                     </Border>
 
                     <Button Grid.Column="4"

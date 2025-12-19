@@ -284,14 +284,14 @@ namespace Zabrownie.UI
                 WebViewContainer.Children.Add(tab.WebView);
 
                 // Update address bar
-                if (string.IsNullOrWhiteSpace(tab.Url) || tab.Url == "about:blank" || tab.Url == "homepage")
+                /* if (string.IsNullOrWhiteSpace(tab.Url) || tab.Url == "about:blank" || tab.Url == "homepage")
                 {
                     AddressBar.Text = "Escribe URL o busca...";
                 }
                 else
                 {
                     AddressBar.Text = tab.Url;
-                }
+                } */
 
                 UpdateNavigationButtons();
                 UpdateBookmarkButton();
@@ -979,24 +979,23 @@ namespace Zabrownie.UI
 
         private void Maximize_Click(object sender, RoutedEventArgs e)
         {
+            var workArea = SystemParameters.WorkArea;
             if (WindowState == WindowState.Maximized)
             {
                 WindowState = WindowState.Normal;
             }
             else
             {
-                // Obtener el área de trabajo (excluyendo la barra de tareas)
-                var workArea = SystemParameters.WorkArea;
-
                 WindowState = WindowState.Maximized;
 
                 // Asegurar que la ventana respeta la barra de tareas
-                MaxHeight = workArea.Height + 8; // +16 para compensar bordes
-                MaxWidth = workArea.Width;
+                /* MaxHeight = workArea.Height + 8; // +16 para compensar bordes
+                MaxWidth = workArea.Width; */
             }
+            LoggingService.Log($"MaxHeight: {workArea.Height} MaxWidth: {workArea.Width}");
         }
 
-        protected override void OnStateChanged(EventArgs e)
+        /* protected override void OnStateChanged(EventArgs e)
         {
             base.OnStateChanged(e);
 
@@ -1009,7 +1008,7 @@ namespace Zabrownie.UI
                 Width = workArea.Width;
                 Height = workArea.Height;
             }
-        }
+        } */
 
         private void Close_Click(object sender, RoutedEventArgs e)
         {
