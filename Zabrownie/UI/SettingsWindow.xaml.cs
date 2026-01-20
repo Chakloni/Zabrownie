@@ -1,6 +1,4 @@
 using Zabrownie.Core;
-using Zabrownie.Models;
-using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 

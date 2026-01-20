@@ -7,6 +7,7 @@ namespace Zabrownie.Models
         public string Homepage { get; set; } = "https://www.google.com";
         public bool EnableAdBlocking { get; set; } = true;
         public bool EnableJavaScript { get; set; } = true;
+        public bool BookmarksBarShow { get; set; } = true;
         public bool BlockThirdPartyCookies { get; set; } = true;
         public bool StripTrackingParams { get; set; } = true;
         public bool ClearDataOnClose { get; set; } = false;
@@ -20,8 +21,8 @@ namespace Zabrownie.Models
         public string ReferrerPolicy { get; set; } = "no-referrer-when-downgrade"; // Options: "no-referrer", "no-referrer-when-downgrade", "origin", "same-origin", "strict-origin"
         public bool BlockWebRTC { get; set; } = false;
         
-        public List<SiteWhitelistEntry> Whitelist { get; set; } = new List<SiteWhitelistEntry>();
-        public List<string> CustomFilterLists { get; set; } = new List<string>();
-        public Dictionary<string, bool> PerSiteJavaScript { get; set; } = new Dictionary<string, bool>();
+        public List<SiteWhitelistEntry> Whitelist { get; set; } = [];
+        public List<string> CustomFilterLists { get; set; } = [];
+        public Dictionary<string, bool> PerSiteJavaScript { get; set; } = [];
     }
 }

@@ -9,7 +9,6 @@
         <SolidColorBrush x:Key="BgPrimary" Color="#1A1A1D"/>
         <SolidColorBrush x:Key="BgSecondary" Color="#25252A"/>
         <SolidColorBrush x:Key="BgTertiary" Color="#2D2D35"/>
-        <!-- <SolidColorBrush x:Key="AccentColor" Color="#8B5CF6"/> -->
         <SolidColorBrush x:Key="TextPrimary" Color="#FFFFFF"/>
         <SolidColorBrush x:Key="TextSecondary" Color="#A0A0A8"/>
         <SolidColorBrush x:Key="BorderColor" Color="#3A3A45"/>
@@ -150,6 +149,9 @@
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <StackPanel Orientation="Horizontal">
+                                        <Button Content="Ir" Width="60" Margin="0,0,4,0" 
+                                                Click="NavBookmark_Click" Tag="{Binding}"
+                                                Style="{StaticResource AccentButton}"/>
                                         <Button Content="Editar" Width="60" Margin="0,0,4,0" 
                                                 Click="EditBookmark_Click" Tag="{Binding}"
                                                 Style="{StaticResource AccentButton}"/>
@@ -185,6 +187,10 @@
                 </DataGrid>
             </Grid>
         </GroupBox>
+
+        
+        <!-- Mostrar BookmarksBar -->
+        <CheckBox Grid.Row="2" x:Name="BookmarksBarShow" Content="Mostrar barra de Bookmarks" IsChecked="True"/>
 
         <!-- Botón cerrar -->
         <Button Grid.Row="2" Content="Cerrar" Width="100" 

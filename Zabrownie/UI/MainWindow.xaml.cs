@@ -239,21 +239,16 @@ namespace Zabrownie.UI
 
                 tab.WebView = webView;
 
-                // Show this tab
                 ShowTab(tab);
 
-                // Show homepage if URL is "homepage" or about:blank
                 if (url == "homepage" || url == "about:blank")
                 {
                     ShowHomepage(true);
                 }
                 else
                 {
-                    // Navigate if URL provided
                     if (!string.IsNullOrWhiteSpace(url) && url != "about:blank")
                     {
-                        // Small optional delay for visual stability
-                        await Task.Delay(100);
                         webView.CoreWebView2.Navigate(url);
                         tab.Url = url;
                         AddressBar.Text = url;
@@ -675,9 +670,18 @@ namespace Zabrownie.UI
                 .Where(b => b.Folder == "Bookmarks Bar")
                 .ToList();
 
-            BookmarksBar.Visibility = BookmarksBarControl.HasItems
-                ? Visibility.Visible
-                : Visibility.Collapsed;
+            if (BookmarksBarControl.HasItems)
+            {
+                if (_settingsManager.Settings.BookmarksBarShow)
+                {
+                    BookmarksBar.Visibility = Visibility.Visible;
+                }
+            }
+            else
+            {
+                BookmarksBar.Visibility = Visibility.Collapsed;
+            }
+            
         }
 
         private void BookmarkBarItem_Click(object sender, RoutedEventArgs e)
@@ -690,16 +694,20 @@ namespace Zabrownie.UI
 
         private void ManageBookmarks_Click(object sender, RoutedEventArgs e)
         {
-            var bookmarksWindow = new BookmarksWindow(_bookmarkManager);
-            bookmarksWindow.Owner = this;
+            var bookmarksWindow = new BookmarksWindow(_bookmarkManager, _settingsManager)
+            {
+                Owner = this
+            };
             bookmarksWindow.ShowDialog();
             UpdateBookmarksBar();
         }
 
         private void SettingsButton_Click(object sender, RoutedEventArgs e)
         {
-            var settingsWindow = new SettingsWindow(_settingsManager, _filterEngine);
-            settingsWindow.Owner = this;
+            var settingsWindow = new SettingsWindow(_settingsManager, _filterEngine)
+            {
+                Owner = this
+            };
 
             bool? result = settingsWindow.ShowDialog();
 
@@ -912,7 +920,7 @@ namespace Zabrownie.UI
                 {
                     Title = dialog.LinkTitle,
                     Url = dialog.LinkUrl,
-                    Icon = dialog.LinkIcon
+                    Icon = CustomLinkWindow.LinkIcon
                 });
 
                 // For now, just show a message

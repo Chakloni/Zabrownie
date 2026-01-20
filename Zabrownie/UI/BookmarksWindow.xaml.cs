@@ -9,11 +9,15 @@ namespace Zabrownie.UI
     public partial class BookmarksWindow : Window
     {
         private readonly BookmarkManager _bookmarkManager;
+        private readonly SettingsManager _settingsManager;
 
-        public BookmarksWindow(BookmarkManager bookmarkManager)
+        public BookmarksWindow(BookmarkManager bookmarkManager, SettingsManager settingsManager)
         {
             InitializeComponent();
             _bookmarkManager = bookmarkManager;
+            _settingsManager = settingsManager;
+            var settings = _settingsManager.Settings;
+            BookmarksBarShow.IsChecked = settings.EnableAdBlocking;
             LoadBookmarks();
             LoadFolders();
         }
@@ -85,9 +89,39 @@ namespace Zabrownie.UI
         {
             if (sender is Button button && button.Tag is Bookmark bookmark)
             {
-                var dialog = new EditBookmarkDialog(bookmark);
-                dialog.Owner = this;
-                
+                var dialog = new EditBookmarkDialog(bookmark)
+                {
+                    Owner = this
+                };
+
+                if (dialog.ShowDialog() == true)
+                {
+                    _bookmarkManager.UpdateBookmark(
+                        bookmark.Id,
+                        dialog.BookmarkTitle,
+                        dialog.BookmarkUrl,
+                        dialog.BookmarkFolder);
+                    
+                    await _bookmarkManager.SaveAsync();
+                    LoadFolders();
+                    LoadBookmarks();
+                }
+            }
+        }
+
+        private async void NavBookmark_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button button && button.Tag is Bookmark bookmark)
+            {
+                var dialog = new EditBookmarkDialog(bookmark)
+                {
+                    Owner = this
+                };
+
+                //Here aqui wey
+
+                //CreateNewTabAsync();
+
                 if (dialog.ShowDialog() == true)
                 {
                     _bookmarkManager.UpdateBookmark(

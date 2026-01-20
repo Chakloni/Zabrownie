@@ -10,7 +10,7 @@ namespace Zabrownie.UI
         
         public string LinkTitle => _titleTextBox?.Text?.Trim() ?? "";
         public string LinkUrl => _urlTextBox?.Text?.Trim() ?? "";
-        public string LinkIcon => "🔗";
+        public static string LinkIcon => "🔗";
 
         public CustomLinkWindow()
         {
