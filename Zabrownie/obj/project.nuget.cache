@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "o6YorSL+Z0Y=",
+  "dgSpecHash": "Q3qBcsTOTo0=",
   "success": true,
-  "projectFilePath": "C:\\Users\\INFORMATICA\\Documents\\GitHub\\Zabrownie\\zabrownie\\Zabrownie.csproj",
+  "projectFilePath": "C:\\Users\\INFORMATICA\\Documents\\GitHub\\Zabrownie\\Zabrownie\\Zabrownie.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\INFORMATICA\\.nuget\\packages\\distillnet\\1.6.6\\distillnet.1.6.6.nupkg.sha512",
     "C:\\Users\\INFORMATICA\\.nuget\\packages\\microsoft.data.sqlite\\3.0.0\\microsoft.data.sqlite.3.0.0.nupkg.sha512",

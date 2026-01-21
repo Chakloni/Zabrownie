@@ -544,6 +544,19 @@ namespace Zabrownie.UI
             {
                 AddressBar.Text = "";
             }
+            else
+            {
+                var textBox = (TextBox)sender;
+                string text = textBox.ToString();
+                textBox.Dispatcher.BeginInvoke(new Action(() => textBox.SelectAll()));
+                textBox.Select(0, text.Length);
+            }
+        }
+
+        private void TextBoxOnClick(object sender, RoutedEventArgs e)
+        {
+            AddressBar.SelectAll();
+            AddressBar.Focus();
         }
 
         private void WebView_NavigationStarting(object? sender, CoreWebView2NavigationStartingEventArgs e, BrowserTab tab)

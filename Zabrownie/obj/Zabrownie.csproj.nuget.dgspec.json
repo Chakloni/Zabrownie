@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\INFORMATICA\\Documents\\GitHub\\Zabrownie\\zabrownie\\Zabrownie.csproj": {}
+    "C:\\Users\\INFORMATICA\\Documents\\GitHub\\Zabrownie\\Zabrownie\\Zabrownie.csproj": {}
   },
   "projects": {
-    "C:\\Users\\INFORMATICA\\Documents\\GitHub\\Zabrownie\\zabrownie\\Zabrownie.csproj": {
+    "C:\\Users\\INFORMATICA\\Documents\\GitHub\\Zabrownie\\Zabrownie\\Zabrownie.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\INFORMATICA\\Documents\\GitHub\\Zabrownie\\zabrownie\\Zabrownie.csproj",
+        "projectUniqueName": "C:\\Users\\INFORMATICA\\Documents\\GitHub\\Zabrownie\\Zabrownie\\Zabrownie.csproj",
         "projectName": "Zabrownie",
-        "projectPath": "C:\\Users\\INFORMATICA\\Documents\\GitHub\\Zabrownie\\zabrownie\\Zabrownie.csproj",
+        "projectPath": "C:\\Users\\INFORMATICA\\Documents\\GitHub\\Zabrownie\\Zabrownie\\Zabrownie.csproj",
         "packagesPath": "C:\\Users\\INFORMATICA\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\INFORMATICA\\Documents\\GitHub\\Zabrownie\\zabrownie\\obj\\",
+        "outputPath": "C:\\Users\\INFORMATICA\\Documents\\GitHub\\Zabrownie\\Zabrownie\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

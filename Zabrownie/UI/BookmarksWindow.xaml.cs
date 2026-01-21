@@ -118,10 +118,6 @@ namespace Zabrownie.UI
                     Owner = this
                 };
 
-                //Here aqui wey
-
-                //CreateNewTabAsync();
-
                 if (dialog.ShowDialog() == true)
                 {
                     _bookmarkManager.UpdateBookmark(

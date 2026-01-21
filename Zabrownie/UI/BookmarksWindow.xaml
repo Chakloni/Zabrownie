@@ -190,7 +190,7 @@
 
         
         <!-- Mostrar BookmarksBar -->
-        <CheckBox Grid.Row="2" x:Name="BookmarksBarShow" Content="Mostrar barra de Bookmarks" IsChecked="True"/>
+        <CheckBox Grid.Row="2" x:Name="BookmarksBarShow" Content="Mostrar barra de Bookmarks"/>
 
         <!-- Botón cerrar -->
         <Button Grid.Row="2" Content="Cerrar" Width="100" 
