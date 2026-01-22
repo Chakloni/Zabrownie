@@ -1009,11 +1009,13 @@ namespace Zabrownie.UI
             {
                 WindowState = WindowState.Maximized;
 
-                // Asegurar que la ventana respeta la barra de tareas
-                /* MaxHeight = workArea.Height + 8; // +16 para compensar bordes
-                MaxWidth = workArea.Width; */
+                /* MaxHeight = workArea.Height; // +16
+                MaxWidth = workArea.Width;
+                Left = workArea.Left;
+                Top = workArea.Top; */
             }
             LoggingService.Log($"MaxHeight: {workArea.Height} MaxWidth: {workArea.Width}");
+            LoggingService.Log($"Left: {workArea.Left} Top: {workArea.Top}");
         }
 
         /* protected override void OnStateChanged(EventArgs e)

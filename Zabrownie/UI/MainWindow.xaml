@@ -4,14 +4,20 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:wv2="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
         Title="Zabrownie"
-        Height="Auto"
-        Width="Auto"
         Loaded="Window_Loaded"
         Closing="Window_Closing"
         WindowStyle="None"
         AllowsTransparency="True"
         Background="Transparent"
         ResizeMode="CanResize">
+
+    <WindowChrome.WindowChrome>
+        <WindowChrome
+            CaptionHeight="0"
+            ResizeBorderThickness="10"
+            GlassFrameThickness="0"
+            UseAeroCaptionButtons="False"/>
+    </WindowChrome.WindowChrome>
 
     <Window.InputBindings>
         <KeyBinding Key="T"
@@ -310,11 +316,30 @@
                 </Setter.Value>
             </Setter>
         </Style>
+
+        <Style x:Key="OuterBorderStyle" TargetType="Border">
+            <!-- Normal (windowed) -->
+            <Setter Property="Margin" Value="0"/>
+            <Setter Property="CornerRadius" Value="12"/>
+
+            <Style.Triggers>
+                <!-- Maximized -->
+                <DataTrigger Binding="{Binding WindowState, RelativeSource={RelativeSource AncestorType=Window}}"
+                            Value="Maximized">
+                    <!-- Padding effect -->
+                    <Setter Property="Margin" Value="6,6,6,0"/>
+
+                    <!-- Optional but recommended -->
+                    <Setter Property="CornerRadius" Value="0"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
     </Window.Resources>
 
     <!-- Border exterior con sombra -->
-    <Border Background="{StaticResource BgPrimary}"
-            CornerRadius="12"
+    <Border x:Name="OuterBorder"
+            Style="{StaticResource OuterBorderStyle}"
+            Background="{StaticResource BgPrimary}"
             BorderThickness="1"
             BorderBrush="{StaticResource BorderColor}">
         <Border.Effect>
