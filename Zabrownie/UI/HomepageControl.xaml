@@ -1,0 +1,78 @@
+<UserControl x:Class="Zabrownie.UI.HomepageControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             mc:Ignorable="d" 
+             d:DesignHeight="800" d:DesignWidth="1200"
+             Background="{DynamicResource BgPrimary}">
+    <ScrollViewer Style="{DynamicResource OperaGXScrollViewer}" VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="0,40,0,0">
+
+            <!-- Personal Greeting Section -->
+            <StackPanel HorizontalAlignment="Center" Margin="0,0,0,40">
+                <TextBlock Text="Welcome to" FontSize="16" Foreground="{DynamicResource TextSecondary}" HorizontalAlignment="Center"/>
+                <TextBlock Text="Zabrownie" FontSize="48" FontWeight="Bold" Foreground="{DynamicResource AccentColor}" HorizontalAlignment="Center" Margin="0,8,0,16"/>
+                <TextBlock x:Name="PersonalGreeting" Text="Your personal browsing experience" FontSize="18" Foreground="{DynamicResource TextPrimary}" HorizontalAlignment="Center" Opacity="0.9"/>
+            </StackPanel>
+
+            <!-- Search Box -->
+            <Border Background="{DynamicResource BgSecondary}" CornerRadius="12" BorderBrush="{DynamicResource BorderColor}" BorderThickness="1" Width="600" Height="55" HorizontalAlignment="Center" Margin="0,0,0,40">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock Text="🔍" FontSize="18" VerticalAlignment="Center" Margin="16,0,12,0" Foreground="{DynamicResource TextSecondary}"/>
+
+                    <TextBox x:Name="HomepageSearchBox" Grid.Column="1" Text="Search or enter address..." Foreground="{DynamicResource TextPrimary}" Background="Transparent" BorderThickness="0" FontSize="14" VerticalContentAlignment="Center" KeyDown="HomepageSearchBox_KeyDown" GotFocus="HomepageSearchBox_GotFocus" LostFocus="HomepageSearchBox_LostFocus"/>
+
+                    <Button Grid.Column="2" Content="Go" Style="{DynamicResource ActionButtonStyle}" Margin="8" Click="HomepageSearchButton_Click"/>
+                </Grid>
+            </Border>
+
+            <!-- Quick Links -->
+            <StackPanel HorizontalAlignment="Center" Width="600" Margin="0,0,0,40">
+                <TextBlock Text="Quick Links" FontSize="20" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimary}" Margin="0,0,0,16"/>
+                <WrapPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                    <Button Content="YouTube" Style="{DynamicResource NavButtonStyle}" Click="QuickLink_Click" Tag="https://youtube.com" Margin="4" Padding="16,10" Width="120"/>
+                    <Button Content="Netflix" Style="{DynamicResource NavButtonStyle}" Click="QuickLink_Click" Tag="https://netflix.com" Margin="4" Padding="16,10" Width="120"/>
+                    <Button Content="Spotify" Style="{DynamicResource NavButtonStyle}" Click="QuickLink_Click" Tag="https://spotify.com" Margin="4" Padding="16,10" Width="120"/>
+                    <Button Content="Gmail" Style="{DynamicResource NavButtonStyle}" Click="QuickLink_Click" Tag="https://gmail.com" Margin="4" Padding="16,10" Width="120"/>
+                    <Button Content="GitHub" Style="{DynamicResource NavButtonStyle}" Click="QuickLink_Click" Tag="https://github.com" Margin="4" Padding="16,10" Width="120"/>
+                    <Button Content="Reddit" Style="{DynamicResource NavButtonStyle}" Click="QuickLink_Click" Tag="https://reddit.com" Margin="4" Padding="16,10" Width="120"/>
+                </WrapPanel>
+                <Button Content="+ Add Custom Link" Style="{DynamicResource NavButtonStyle}" Click="AddCustomLink_Click" Margin="0,16,0,0" HorizontalAlignment="Center" Padding="12,8"/>
+            </StackPanel>
+
+            <!-- Recently Visited -->
+            <Border Background="{DynamicResource BgSecondary}" CornerRadius="12" Padding="20" Width="600" HorizontalAlignment="Center">
+                <StackPanel>
+                    <TextBlock Text="Recently Visited" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimary}" Margin="0,0,0,12"/>
+                    <ItemsControl x:Name="RecentSitesControl">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Button Content="{Binding Title}" Style="{DynamicResource NavButtonStyle}" Click="RecentSite_Click" Tag="{Binding Url}" Margin="0,4" HorizontalContentAlignment="Left" Padding="12,8"/>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    <TextBlock x:Name="NoRecentSitesText" Text="No recent sites yet. Start browsing!" Foreground="{DynamicResource TextSecondary}" FontStyle="Italic" HorizontalAlignment="Center" Margin="0,12,0,0"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Time/Date -->
+            <Border Background="{DynamicResource BgSecondary}" CornerRadius="12" Padding="20" Width="600" HorizontalAlignment="Center" Margin="0,20,0,0">
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                    <TextBlock x:Name="TimeText" Text="" FontSize="32" FontWeight="Bold" Foreground="{DynamicResource AccentColor}" VerticalAlignment="Center"/>
+                    <StackPanel Margin="20,0,0,0" VerticalAlignment="Center">
+                        <TextBlock x:Name="DateText" Text="" FontSize="14" Foreground="{DynamicResource TextPrimary}"/>
+                        <TextBlock x:Name="DayText" Text="" FontSize="12" Foreground="{DynamicResource TextSecondary}" Margin="0,4,0,0"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

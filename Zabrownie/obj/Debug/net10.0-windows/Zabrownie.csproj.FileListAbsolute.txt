@@ -107,3 +107,6 @@ C:\Users\edgar\Documents\palCredito\interfaz\Zabrownie\Zabrownie\obj\Debug\net10
 C:\Users\edgar\Documents\palCredito\interfaz\Zabrownie\Zabrownie\obj\Debug\net10.0-windows\Zabrownie.pdb
 C:\Users\edgar\Documents\palCredito\interfaz\Zabrownie\Zabrownie\obj\Debug\net10.0-windows\Zabrownie.genruntimeconfig.cache
 C:\Users\edgar\Documents\palCredito\interfaz\Zabrownie\Zabrownie\obj\Debug\net10.0-windows\ref\Zabrownie.dll
+C:\Users\edgar\Documents\palCredito\interfaz\Zabrownie\Zabrownie\obj\Debug\net10.0-windows\UI\HomepageControl.baml
+C:\Users\edgar\Documents\palCredito\interfaz\Zabrownie\Zabrownie\obj\Debug\net10.0-windows\UI\HomepageControl.g.cs
+C:\Users\edgar\Documents\palCredito\interfaz\Zabrownie\Zabrownie\obj\Debug\net10.0-windows\GeneratedInternalTypeHelper.g.cs
