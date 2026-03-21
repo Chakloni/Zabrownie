@@ -46,11 +46,17 @@ namespace Zabrownie.UI
         public ICommand ZoomInCommand { get; }
         public ICommand ZoomOutCommand { get; }
         public ICommand ZoomResetCommand { get; }
+        public ICommand NewWindowCommand { get; }
+        public ICommand NewIncognitoWindowCommand { get; }
 
         private BrowserTab? _draggedTab = null;
         private Point _dragStartPoint;
 
-        public MainWindow(bool isIncognito = false)
+        public MainWindow() : this(false)
+        {
+        }
+
+        public MainWindow(bool isIncognito)
         {
             IsIncognito = isIncognito;
             InitializeComponent();
@@ -66,6 +72,8 @@ namespace Zabrownie.UI
             ZoomInCommand = new RelayCommand(_ => ChangeZoom(0.25));
             ZoomOutCommand = new RelayCommand(_ => ChangeZoom(-0.25));
             ZoomResetCommand = new RelayCommand(_ => ChangeZoom(0, true));
+            NewWindowCommand = new RelayCommand(_ => OpenNewWindow(false));
+            NewIncognitoWindowCommand = new RelayCommand(_ => OpenNewWindow(true));
             DataContext = this;
 
             _settingsManager = new SettingsManager();
@@ -461,6 +469,12 @@ namespace Zabrownie.UI
             await CreateNewTabAsync("homepage"); // Show homepage on new tab
         }
 
+        private void OpenNewWindow(bool incognito)
+        {
+            var newWindow = new MainWindow(incognito);
+            newWindow.Show();
+        }
+
         private void CloseTab_Click(object sender, RoutedEventArgs e)
         {
             if (sender is Button button && button.Tag is BrowserTab tab)
@@ -804,7 +818,7 @@ namespace Zabrownie.UI
                 try
                 {
                     // Clean up temporary WebView2 folder for Incognito mode
-                    System.Threading.Tasks.Task.Run(async () =>
+                    _ = System.Threading.Tasks.Task.Run(async () =>
                     {
                         await System.Threading.Tasks.Task.Delay(1500);
                         if (System.IO.Directory.Exists(_tempIncognitoFolder))
@@ -818,7 +832,6 @@ namespace Zabrownie.UI
                     LoggingService.Log($"Failed to delete incognito folder: {ex.Message}");
                 }
             }
-            await _bookmarkManager.SaveAsync();
 
             if (_settingsManager.Settings.ClearDataOnClose)
             {

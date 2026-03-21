@@ -55,6 +55,14 @@
 
         <KeyBinding Gesture="Ctrl+Shift+T" 
                     Command="{Binding ReopenClosedTabCommand}" />
+
+        <KeyBinding Key="N"
+                    Modifiers="Control"
+                    Command="{Binding NewWindowCommand}"/>
+
+        <KeyBinding Key="N"
+                    Modifiers="Control+Shift"
+                    Command="{Binding NewIncognitoWindowCommand}"/>
     </Window.InputBindings>
 
     <Window.Resources>

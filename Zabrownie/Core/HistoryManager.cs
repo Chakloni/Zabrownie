@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Zabrownie.Models;
 using Zabrownie.Services;
@@ -32,7 +33,9 @@ namespace Zabrownie.Core
             {
                 try
                 {
-                    var loadedHistory = await FileService.LoadJsonAsync<List<HistoryItem>>(_historyFilePath);
+                    var json = await File.ReadAllTextAsync(_historyFilePath);
+                    var loadedHistory = JsonSerializer.Deserialize<List<HistoryItem>>(json);
+                    
                     if (loadedHistory != null)
                     {
                         History = loadedHistory.OrderByDescending(h => h.VisitDate).ToList();
@@ -57,7 +60,8 @@ namespace Zabrownie.Core
                     History = History.OrderByDescending(h => h.VisitDate).Take(5000).ToList();
                 }
 
-                await FileService.SaveJsonAsync(_historyFilePath, History);
+                var json = JsonSerializer.Serialize(History, new JsonSerializerOptions { WriteIndented = true });
+                await File.WriteAllTextAsync(_historyFilePath, json);
             }
             catch (Exception ex)
             {

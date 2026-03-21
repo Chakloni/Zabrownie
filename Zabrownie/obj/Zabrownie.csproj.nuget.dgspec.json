@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\edgar\\Documents\\palCredito\\interfaz\\Zabrownie\\Zabrownie\\Zabrownie.csproj": {}
+    "C:\\Users\\edgar\\Documents\\palCredito\\interfaz\\Zabrownie\\zabrownie\\Zabrownie.csproj": {}
   },
   "projects": {
-    "C:\\Users\\edgar\\Documents\\palCredito\\interfaz\\Zabrownie\\Zabrownie\\Zabrownie.csproj": {
+    "C:\\Users\\edgar\\Documents\\palCredito\\interfaz\\Zabrownie\\zabrownie\\Zabrownie.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\edgar\\Documents\\palCredito\\interfaz\\Zabrownie\\Zabrownie\\Zabrownie.csproj",
+        "projectUniqueName": "C:\\Users\\edgar\\Documents\\palCredito\\interfaz\\Zabrownie\\zabrownie\\Zabrownie.csproj",
         "projectName": "Zabrownie",
-        "projectPath": "C:\\Users\\edgar\\Documents\\palCredito\\interfaz\\Zabrownie\\Zabrownie\\Zabrownie.csproj",
+        "projectPath": "C:\\Users\\edgar\\Documents\\palCredito\\interfaz\\Zabrownie\\zabrownie\\Zabrownie.csproj",
         "packagesPath": "C:\\Users\\edgar\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\edgar\\Documents\\palCredito\\interfaz\\Zabrownie\\Zabrownie\\obj\\",
+        "outputPath": "C:\\Users\\edgar\\Documents\\palCredito\\interfaz\\Zabrownie\\zabrownie\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\edgar\\AppData\\Roaming\\NuGet\\NuGet.Config"
