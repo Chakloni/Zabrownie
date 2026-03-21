@@ -1,0 +1,38 @@
+# .gitignore for Zabrownie (WPF/.NET 10.0) project
+# Build results
+bin/
+obj/
+# User-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.csproj.user
+# Visual Studio / Rider
+.vs/
+.idea/
+.vscode/
+# NuGet packages
+*.nupkg
+# Resharper
+_ReSharper*/
+# Build logs
+*.log
+# Temporary files
+*.tmp
+# Publish output
+publish/
+# Generated files
+*.g.cs
+*.g.i.cs
+# Debug symbols
+*.pdb
+# Executables (optional, can be rebuilt)
+*.exe
+*.dll
+# WebView2 runtime (if bundled)
+Microsoft.Web.WebView2.Core.dll
+# Misc
+*.vspscc
+*.vssscc
+# End of .gitignore

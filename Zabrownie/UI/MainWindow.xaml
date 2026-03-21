@@ -5,14 +5,20 @@
         xmlns:wv2="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
         xmlns:local="clr-namespace:Zabrownie.UI"
         Title="Zabrownie"
-        Height="800"
-        Width="1200"
         Loaded="Window_Loaded"
         Closing="Window_Closing"
         WindowStyle="None"
         AllowsTransparency="True"
         Background="Transparent"
         ResizeMode="CanResize">
+
+    <WindowChrome.WindowChrome>
+        <WindowChrome
+            CaptionHeight="0"
+            ResizeBorderThickness="10"
+            GlassFrameThickness="0"
+            UseAeroCaptionButtons="False"/>
+    </WindowChrome.WindowChrome>
 
     <Window.InputBindings>
         <KeyBinding Key="T"
@@ -46,6 +52,9 @@
         <KeyBinding Key="D0"
                     Modifiers="Control"
                     Command="{Binding ZoomResetCommand}"/>
+
+        <KeyBinding Gesture="Ctrl+Shift+T" 
+                    Command="{Binding ReopenClosedTabCommand}" />
     </Window.InputBindings>
 
     <Window.Resources>
@@ -56,10 +65,6 @@
                          Color="#25252A"/>
         <SolidColorBrush x:Key="BgTertiary"
                          Color="#2D2D35"/>
-        <!-- <SolidColorBrush x:Key="AccentColor"
-                         Color="#8B5CF6"/> -->
-        <!-- <SolidColorBrush x:Key="AccentHover"
-                         Color="#A78BFA"/> -->
         <SolidColorBrush x:Key="TextPrimary"
                          Color="#FFFFFF"/>
         <SolidColorBrush x:Key="TextSecondary"
@@ -228,7 +233,7 @@
             <Setter Property="Width"
                     Value="40"/>
             <Setter Property="Height"
-                    Value="40"/>
+                    Value="35"/>
             <Setter Property="FontSize"
                     Value="16"/>
             <Setter Property="Cursor"
@@ -312,11 +317,30 @@
                 </Setter.Value>
             </Setter>
         </Style>
+
+        <Style x:Key="OuterBorderStyle" TargetType="Border">
+            <!-- Normal (windowed) -->
+            <Setter Property="Margin" Value="0"/>
+            <Setter Property="CornerRadius" Value="12"/>
+
+            <Style.Triggers>
+                <!-- Maximized -->
+                <DataTrigger Binding="{Binding WindowState, RelativeSource={RelativeSource AncestorType=Window}}"
+                            Value="Maximized">
+                    <!-- Padding effect -->
+                    <Setter Property="Margin" Value="6,6,6,0"/>
+
+                    <!-- Optional but recommended -->
+                    <Setter Property="CornerRadius" Value="0"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
     </Window.Resources>
 
     <!-- Border exterior con sombra -->
-    <Border Background="{StaticResource BgPrimary}"
-            CornerRadius="12"
+    <Border x:Name="OuterBorder"
+            Style="{StaticResource OuterBorderStyle}"
+            Background="{StaticResource BgPrimary}"
             BorderThickness="1"
             BorderBrush="{StaticResource BorderColor}">
         <Border.Effect>
@@ -341,7 +365,7 @@
                     Background="{StaticResource BgSecondary}"
                     CornerRadius="12,12,0,0"
                     MouseLeftButtonDown="TitleBar_MouseLeftButtonDown">
-                <Grid Height="45">
+                <Grid Height="40">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="*"/>
@@ -368,7 +392,7 @@
 
                     <!-- Tabs -->
                     <Border Grid.Column="1"
-                            MouseLeftButtonDown="StopDrag">
+                            MouseLeftButtonDown="Move_MouseLeftButtonDown">
                         <ScrollViewer
                             Style="{StaticResource OperaGXScrollViewer}"
                             HorizontalScrollBarVisibility="Auto"
@@ -384,6 +408,11 @@
                                     <DataTemplate>
                                         <Button Style="{StaticResource TabButtonStyle}"
                                                 Click="Tab_Click"
+                                                AllowDrop="True"
+                                                PreviewMouseLeftButtonDown="Tab_PreviewMouseLeftButtonDown"
+                                                PreviewMouseMove="Tab_PreviewMouseMove"
+                                                Drop="Tab_Drop"
+                                                DragOver="Tab_DragOver"
                                                 Tag="{Binding}">
                                             <Grid>
                                                 <Grid.ColumnDefinitions>
@@ -392,7 +421,7 @@
                                                 </Grid.ColumnDefinitions>
                                                 <TextBlock Grid.Column="0"
                                                            Text="{Binding Title}"
-                                                           MaxWidth="150"
+                                                           Width="125"
                                                            TextTrimming="CharacterEllipsis"
                                                            VerticalAlignment="Center"
                                                            Margin="0,0,12,0"/>
@@ -458,18 +487,18 @@
                                 Margin="8,0,8,0">
                         <Button Content="—"
                                 Width="40"
-                                Height="40"
+                                Height="35"
                                 Click="Minimize_Click"
                                 Style="{StaticResource NavButtonStyle}"/>
                         <Button Content="▢"
                                 Width="40"
-                                Height="40"
+                                Height="35"
                                 Click="Maximize_Click"
                                 Style="{StaticResource NavButtonStyle}"
                                 Margin="4,0,0,0"/>
                         <Button Content="✕"
                                 Width="40"
-                                Height="40"
+                                Height="35"
                                 Click="Close_Click"
                                 Foreground="{StaticResource TextSecondary}"
                                 Margin="4,0,0,0">
@@ -496,7 +525,7 @@
             <Border Grid.Row="1"
                     x:Name="NavigationBar"
                     Background="{StaticResource BgPrimary}"
-                    Padding="12,12">
+                    Padding="8,8">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>
@@ -538,7 +567,7 @@
                             BorderBrush="{StaticResource BorderColor}"
                             BorderThickness="1"
                             CornerRadius="8"
-                            Height="40">
+                            Height="35">
                         <TextBox x:Name="AddressBar"
                                  VerticalContentAlignment="Center"
                                  Padding="16,0"
@@ -548,8 +577,7 @@
                                  BorderThickness="0"
                                  CaretBrush="{DynamicResource AccentColor}"
                                  KeyDown="AddressBar_KeyDown"
-                                 GotFocus="AddressBar_GotFocus"
-                                 Text="Escribe URL o busca..."/>
+                                 GotFocus="AddressBar_GotFocus"/>
                     </Border>
 
                     <Button Grid.Column="4"

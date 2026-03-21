@@ -28,10 +28,10 @@ namespace Zabrownie.UI
         private CoreWebView2Environment? _webViewEnvironment;
 
         // Homepage-related fields
-        private List<QuickLink> _quickLinks = new();
-        private List<RecentSite> _recentSites = new();
+        private List<QuickLink> _quickLinks = [];
+        private List<RecentSite> _recentSites = [];
         private DispatcherTimer? _clockTimer; // Made nullable
-        private Stack<BrowserTab> _closedTabs = new();
+        private readonly Stack<BrowserTab> _closedTabs = new();
 
         public ICommand NewTabCommand { get; }
         public ICommand CloseTabCommand { get; }
@@ -45,6 +45,9 @@ namespace Zabrownie.UI
         public ICommand ZoomInCommand { get; }
         public ICommand ZoomOutCommand { get; }
         public ICommand ZoomResetCommand { get; }
+
+        private BrowserTab? _draggedTab = null;
+        private Point _dragStartPoint;
 
         public MainWindow()
         {
@@ -61,8 +64,8 @@ namespace Zabrownie.UI
             ZoomInCommand = new RelayCommand(_ => ChangeZoom(0.25));
             ZoomOutCommand = new RelayCommand(_ => ChangeZoom(-0.25));
             ZoomResetCommand = new RelayCommand(_ => ChangeZoom(0, true));
-
             DataContext = this;
+
             _settingsManager = new SettingsManager();
             _filterEngine = new FilterEngine();
             _tabManager = new TabManager();
@@ -104,7 +107,8 @@ namespace Zabrownie.UI
                 InitializeHomepage();
 
                 // Create initial tab - use "homepage" to show the homepage
-                await CreateNewTabAsync(_settingsManager.Settings.Homepage ?? "homepage");
+                //await CreateNewTabAsync(_settingsManager.Settings.Homepage ?? "homepage");
+                await CreateNewTabAsync("homepage");
             }
             catch (Exception ex)
             {
@@ -115,36 +119,6 @@ namespace Zabrownie.UI
                     "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
-
-        /* private async System.Threading.Tasks.Task CreateDefaultFiltersIfNeeded()
-        {
-            var filtersPath = FileService.GetDefaultFiltersPath();
-            if (!System.IO.File.Exists(filtersPath))
-            {
-                var defaultRules = new[]
-                {
-                    "! Default ad-blocking rules",
-                    "||doubleclick.net^",
-                    "||googleadservices.com^",
-                    "||googlesyndication.com^",
-                    "||google-analytics.com^",
-                    "||facebook.com/tr^",
-                    "||facebook.net/tr^",
-                    "/ads.js",
-                    "/advertisement.",
-                    "/banner.",
-                    "ad-banner",
-                    "ad_banner",
-                    "/adserver.",
-                    "||ads.twitter.com^",
-                    "||static.ads-twitter.com^"
-                };
-
-                await FileService.SaveTextFileAsync(filtersPath, defaultRules);
-            }
-
-            await _filterEngine.LoadFiltersAsync(filtersPath);
-        } */
 
         private async System.Threading.Tasks.Task CreateDefaultFiltersIfNeeded()
         {
@@ -265,21 +239,16 @@ namespace Zabrownie.UI
 
                 tab.WebView = webView;
 
-                // Show this tab
                 ShowTab(tab);
 
-                // Show homepage if URL is "homepage" or about:blank
                 if (url == "homepage" || url == "about:blank")
                 {
                     ShowHomepage(true);
                 }
                 else
                 {
-                    // Navigate if URL provided
                     if (!string.IsNullOrWhiteSpace(url) && url != "about:blank")
                     {
-                        // Small optional delay for visual stability
-                        await Task.Delay(100);
                         webView.CoreWebView2.Navigate(url);
                         tab.Url = url;
                         AddressBar.Text = url;
@@ -310,14 +279,14 @@ namespace Zabrownie.UI
                 WebViewContainer.Children.Add(tab.WebView);
 
                 // Update address bar
-                if (string.IsNullOrWhiteSpace(tab.Url) || tab.Url == "about:blank" || tab.Url == "homepage")
+                /* if (string.IsNullOrWhiteSpace(tab.Url) || tab.Url == "about:blank" || tab.Url == "homepage")
                 {
                     AddressBar.Text = "Escribe URL o busca...";
                 }
                 else
                 {
                     AddressBar.Text = tab.Url;
-                }
+                } */
 
                 UpdateNavigationButtons();
                 UpdateBookmarkButton();
@@ -462,6 +431,74 @@ namespace Zabrownie.UI
             }
         }
 
+        private void Tab_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            // Don't start drag if clicking the close button
+            if (e.OriginalSource is Button closeButton && closeButton.Content?.ToString() == "✕")
+                return;
+
+            if (sender is Button button && button.Tag is BrowserTab tab)
+            {
+                _dragStartPoint = e.GetPosition(null);
+                _draggedTab = tab;
+            }
+        }
+
+        private void Tab_PreviewMouseMove(object sender, MouseEventArgs e)
+        {
+            if (e.LeftButton == MouseButtonState.Pressed && 
+                _draggedTab != null && 
+                sender is Button button)
+            {
+                Point currentPosition = e.GetPosition(null);
+                Vector diff = _dragStartPoint - currentPosition;
+
+                // Only start drag if moved enough (prevents accidental drags)
+                if (Math.Abs(diff.X) > SystemParameters.MinimumHorizontalDragDistance ||
+                    Math.Abs(diff.Y) > SystemParameters.MinimumVerticalDragDistance)
+                {
+                    // Create drag data
+                    DataObject dragData = new DataObject("BrowserTab", _draggedTab);
+                    DragDrop.DoDragDrop(button, dragData, DragDropEffects.Move);
+                    
+                    _draggedTab = null; // Reset after drag
+                }
+            }
+        }
+
+        private void Tab_DragOver(object sender, DragEventArgs e)
+        {
+            if (!e.Data.GetDataPresent("BrowserTab"))
+            {
+                e.Effects = DragDropEffects.None;
+                return;
+            }
+
+            e.Effects = DragDropEffects.Move;
+            e.Handled = true;
+        }
+
+        private void Tab_Drop(object sender, DragEventArgs e)
+        {
+            if (e.Data.GetDataPresent("BrowserTab") && 
+                sender is Button button && 
+                button.Tag is BrowserTab targetTab)
+            {
+                var draggedTab = e.Data.GetData("BrowserTab") as BrowserTab;
+                
+                if (draggedTab != null && draggedTab != targetTab)
+                {
+                    int newIndex = _tabManager.GetTabIndex(targetTab);
+                    _tabManager.MoveTab(draggedTab, newIndex);
+                    
+                    LoggingService.Log($"Moved tab '{draggedTab.Title}' to position {newIndex}");
+                }
+            }
+
+            _draggedTab = null;
+            e.Handled = true;
+        }
+
         private void BackButton_Click(object sender, RoutedEventArgs e)
         {
             if (_tabManager.ActiveTab?.WebView?.CanGoBack == true)
@@ -507,6 +544,19 @@ namespace Zabrownie.UI
             {
                 AddressBar.Text = "";
             }
+            else
+            {
+                var textBox = (TextBox)sender;
+                string text = textBox.ToString();
+                textBox.Dispatcher.BeginInvoke(new Action(() => textBox.SelectAll()));
+                textBox.Select(0, text.Length);
+            }
+        }
+
+        private void TextBoxOnClick(object sender, RoutedEventArgs e)
+        {
+            AddressBar.SelectAll();
+            AddressBar.Focus();
         }
 
         private void WebView_NavigationStarting(object? sender, CoreWebView2NavigationStartingEventArgs e, BrowserTab tab)
@@ -633,9 +683,18 @@ namespace Zabrownie.UI
                 .Where(b => b.Folder == "Bookmarks Bar")
                 .ToList();
 
-            BookmarksBar.Visibility = BookmarksBarControl.HasItems
-                ? Visibility.Visible
-                : Visibility.Collapsed;
+            if (BookmarksBarControl.HasItems)
+            {
+                if (_settingsManager.Settings.BookmarksBarShow)
+                {
+                    BookmarksBar.Visibility = Visibility.Visible;
+                }
+            }
+            else
+            {
+                BookmarksBar.Visibility = Visibility.Collapsed;
+            }
+            
         }
 
         private void BookmarkBarItem_Click(object sender, RoutedEventArgs e)
@@ -648,16 +707,20 @@ namespace Zabrownie.UI
 
         private void ManageBookmarks_Click(object sender, RoutedEventArgs e)
         {
-            var bookmarksWindow = new BookmarksWindow(_bookmarkManager);
-            bookmarksWindow.Owner = this;
+            var bookmarksWindow = new BookmarksWindow(_bookmarkManager, _settingsManager)
+            {
+                Owner = this
+            };
             bookmarksWindow.ShowDialog();
             UpdateBookmarksBar();
         }
 
         private void SettingsButton_Click(object sender, RoutedEventArgs e)
         {
-            var settingsWindow = new SettingsWindow(_settingsManager, _filterEngine);
-            settingsWindow.Owner = this;
+            var settingsWindow = new SettingsWindow(_settingsManager, _filterEngine)
+            {
+                Owner = this
+            };
 
             bool? result = settingsWindow.ShowDialog();
 
@@ -791,7 +854,7 @@ namespace Zabrownie.UI
 
             if (show)
             {
-                HomepageSearchBox.Focus();
+                AddressBar.Focus();
                 UpdateClock(); // Update time immediately
             }
         }
@@ -870,7 +933,7 @@ namespace Zabrownie.UI
                 {
                     Title = dialog.LinkTitle,
                     Url = dialog.LinkUrl,
-                    Icon = dialog.LinkIcon
+                    Icon = CustomLinkWindow.LinkIcon
                 });
 
                 // For now, just show a message
@@ -910,6 +973,18 @@ namespace Zabrownie.UI
             }
         }
 
+        private void Move_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            try
+            {
+                DragMove();
+            }
+            catch (Exception ex)
+            {
+                LoggingService.LogError("Error during window drag", ex);
+            }
+        }
+
         private void StopDrag(object sender, MouseButtonEventArgs e)
         {
             // Prevent drag event from bubbling up
@@ -925,24 +1000,25 @@ namespace Zabrownie.UI
 
         private void Maximize_Click(object sender, RoutedEventArgs e)
         {
+            var workArea = SystemParameters.WorkArea;
             if (WindowState == WindowState.Maximized)
             {
                 WindowState = WindowState.Normal;
             }
             else
             {
-                // Obtener el área de trabajo (excluyendo la barra de tareas)
-                var workArea = SystemParameters.WorkArea;
-
                 WindowState = WindowState.Maximized;
 
-                // Asegurar que la ventana respeta la barra de tareas
-                MaxHeight = workArea.Height + 8; // +16 para compensar bordes
+                /* MaxHeight = workArea.Height; // +16
                 MaxWidth = workArea.Width;
+                Left = workArea.Left;
+                Top = workArea.Top; */
             }
+            LoggingService.Log($"MaxHeight: {workArea.Height} MaxWidth: {workArea.Width}");
+            LoggingService.Log($"Left: {workArea.Left} Top: {workArea.Top}");
         }
 
-        protected override void OnStateChanged(EventArgs e)
+        /* protected override void OnStateChanged(EventArgs e)
         {
             base.OnStateChanged(e);
 
@@ -955,7 +1031,7 @@ namespace Zabrownie.UI
                 Width = workArea.Width;
                 Height = workArea.Height;
             }
-        }
+        } */
 
         private void Close_Click(object sender, RoutedEventArgs e)
         {
@@ -1135,7 +1211,7 @@ namespace Zabrownie.UI
             return ResizeDirection.None;
         }
 
-        private int GetHitTestValue(ResizeDirection direction)
+        private static int GetHitTestValue(ResizeDirection direction)
         {
             return direction switch
             {

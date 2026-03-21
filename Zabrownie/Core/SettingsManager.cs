@@ -4,6 +4,7 @@ using System;
 using System.IO;
 using System.Text.Json;
 using System.Threading.Tasks;
+using System.Threading;
 
 namespace Zabrownie.Core
 {
@@ -13,7 +14,7 @@ namespace Zabrownie.Core
             FileService.GetAppDataPath(), "settings.json");
 
         private AppSettings _settings;
-        private readonly object _lock = new object();
+        private readonly Lock _lock = new();
 
         public AppSettings Settings
         {
@@ -130,6 +131,14 @@ namespace Zabrownie.Core
                 if (_settings.PerSiteJavaScript.TryGetValue(domain, out var enabled))
                     return enabled;
                 return _settings.EnableJavaScript;
+            }
+        }
+
+        public bool IsBookmarksBarShowEnabled()
+        {
+            lock (_lock)
+            {
+                return _settings.BookmarksBarShow;
             }
         }
 
