@@ -223,7 +223,6 @@ namespace Zabrownie.UI
                     LoggingService.Log("Downloading EasyList...");
                     var content = await client.GetStringAsync("https://easylist.to/easylist/easylist.txt");
                     await FileService.SaveTextFileAsync(easyListPath, content.Split('\n'));
-                    LoggingService.Log("EasyList downloaded successfully.");
                 }
 
                 if (!System.IO.File.Exists(easyPrivacyPath))
@@ -231,7 +230,6 @@ namespace Zabrownie.UI
                     LoggingService.Log("Downloading EasyPrivacy...");
                     var content = await client.GetStringAsync("https://easylist.to/easylist/easyprivacy.txt");
                     await FileService.SaveTextFileAsync(easyPrivacyPath, content.Split('\n'));
-                    LoggingService.Log("EasyPrivacy downloaded successfully.");
                 }
             }
             catch (Exception ex)
@@ -295,6 +293,23 @@ namespace Zabrownie.UI
                 webView.NavigationStarting += (s, e) => WebView_NavigationStarting(s, e, tab);
                 webView.NavigationCompleted += (s, e) => WebView_NavigationCompleted(s, e, tab, adBlocker);
                 webView.SourceChanged += (s, e) => WebView_SourceChanged(s, e, tab);
+                
+                webView.CoreWebView2.NewWindowRequested += (s, e) => 
+                {
+                    e.Handled = true; // Block standard popup window
+                    if (!e.IsUserInitiated) 
+                    {
+                        LoggingService.Log($"Blocked automatic popup mapping to: {e.Uri}");
+                        return; // Discard completely if not triggered by the user
+                    }
+                    if (!string.IsNullOrEmpty(e.Uri))
+                    {
+                        Dispatcher.InvokeAsync(async () =>
+                        {
+                            await CreateNewTabAsync(e.Uri);
+                        });
+                    }
+                };
 
                 if (!string.IsNullOrEmpty(_settingsManager.Settings.UserAgent))
                 {
