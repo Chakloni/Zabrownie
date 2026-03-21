@@ -17,7 +17,7 @@ namespace Zabrownie.UI
             _bookmarkManager = bookmarkManager;
             _settingsManager = settingsManager;
             var settings = _settingsManager.Settings;
-            BookmarksBarShow.IsChecked = settings.EnableAdBlocking;
+            BookmarksBarShow.IsChecked = settings.BookmarksBarShow;
             LoadBookmarks();
             LoadFolders();
         }
@@ -159,8 +159,16 @@ namespace Zabrownie.UI
             LoadBookmarks(selectedFolder);
         }
 
-        private void Close_Click(object sender, RoutedEventArgs e)
+        private void Window_MouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
+            if (e.ChangedButton == System.Windows.Input.MouseButton.Left)
+                this.DragMove();
+        }
+
+        private async void Close_Click(object sender, RoutedEventArgs e)
+        {
+            _settingsManager.Settings.BookmarksBarShow = BookmarksBarShow.IsChecked ?? false;
+            await _settingsManager.SaveAsync();
             DialogResult = true;
             Close();
         }

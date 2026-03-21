@@ -123,6 +123,20 @@ namespace Zabrownie.UI
             UpdateRecentSitesUI();
         }
 
+        public void LoadRecentSitesFromHistory(Zabrownie.Core.HistoryManager historyManager)
+        {
+            var recent = historyManager.GetRecentUniqueSites(3);
+            
+            _recentSites = recent.Select(h => new RecentSite 
+            {
+                Title = h.Title,
+                Url = h.Url,
+                VisitedAt = h.VisitDate
+            }).ToList();
+
+            UpdateRecentSitesUI();
+        }
+
         private void HomepageSearchBox_GotFocus(object sender, RoutedEventArgs e)
         {
             if (HomepageSearchBox.Text == "Search or enter address...")

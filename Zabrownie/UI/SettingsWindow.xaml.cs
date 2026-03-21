@@ -37,6 +37,7 @@ namespace Zabrownie.UI
             
             // Basic privacy settings
             EnableAdBlockingCheckBox.IsChecked = settings.EnableAdBlocking;
+            EnableTrackerBlockingCheckBox.IsChecked = settings.EnableTrackerBlocking;
             StripTrackingParamsCheckBox.IsChecked = settings.StripTrackingParams;
             BlockThirdPartyCookiesCheckBox.IsChecked = settings.BlockThirdPartyCookies;
             ClearDataOnCloseCheckBox.IsChecked = settings.ClearDataOnClose;
@@ -143,6 +144,7 @@ namespace Zabrownie.UI
             
             // Basic privacy settings
             settings.EnableAdBlocking = EnableAdBlockingCheckBox.IsChecked ?? true;
+            settings.EnableTrackerBlocking = EnableTrackerBlockingCheckBox.IsChecked ?? true;
             settings.StripTrackingParams = StripTrackingParamsCheckBox.IsChecked ?? true;
             settings.BlockThirdPartyCookies = BlockThirdPartyCookiesCheckBox.IsChecked ?? true;
             settings.ClearDataOnClose = ClearDataOnCloseCheckBox.IsChecked ?? false;
@@ -188,6 +190,27 @@ namespace Zabrownie.UI
         {
             DialogResult = false;
             this.Close(); 
+        }
+
+        private void Tab_Checked(object sender, RoutedEventArgs e)
+        {
+            if (ViewAppearance == null || ViewPrivacy == null || ViewGeneral == null || ViewAdvanced == null) return;
+
+            ViewAppearance.Visibility = Visibility.Collapsed;
+            ViewPrivacy.Visibility = Visibility.Collapsed;
+            ViewGeneral.Visibility = Visibility.Collapsed;
+            ViewAdvanced.Visibility = Visibility.Collapsed;
+
+            if (sender == TabAppearance) ViewAppearance.Visibility = Visibility.Visible;
+            else if (sender == TabPrivacy) ViewPrivacy.Visibility = Visibility.Visible;
+            else if (sender == TabGeneral) ViewGeneral.Visibility = Visibility.Visible;
+            else if (sender == TabAdvanced) ViewAdvanced.Visibility = Visibility.Visible;
+        }
+
+        private void Window_MouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            if (e.ChangedButton == System.Windows.Input.MouseButton.Left)
+                this.DragMove();
         }
     }
 }

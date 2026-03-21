@@ -24,13 +24,14 @@ namespace Zabrownie.UI
         private readonly FilterEngine _filterEngine;
         private readonly TabManager _tabManager;
         private readonly BookmarkManager _bookmarkManager;
+        private readonly HistoryManager _historyManager;
         private readonly WebViewFactory _webViewFactory;
         private CoreWebView2Environment? _webViewEnvironment;
+        private string? _tempIncognitoFolder;
 
-        // Homepage-related fields
-        private List<QuickLink> _quickLinks = [];
-        private List<RecentSite> _recentSites = [];
-        private DispatcherTimer? _clockTimer; // Made nullable
+        public bool IsIncognito { get; private set; }
+
+        // Tab-related fields
         private readonly Stack<BrowserTab> _closedTabs = new();
 
         public ICommand NewTabCommand { get; }
@@ -49,8 +50,9 @@ namespace Zabrownie.UI
         private BrowserTab? _draggedTab = null;
         private Point _dragStartPoint;
 
-        public MainWindow()
+        public MainWindow(bool isIncognito = false)
         {
+            IsIncognito = isIncognito;
             InitializeComponent();
             NewTabCommand = new RelayCommand(_ => CreateNewTabAsync().ConfigureAwait(false));
             CloseTabCommand = new RelayCommand(_ => CloseCurrentTab());
@@ -70,6 +72,7 @@ namespace Zabrownie.UI
             _filterEngine = new FilterEngine();
             _tabManager = new TabManager();
             _bookmarkManager = new BookmarkManager();
+            _historyManager = new HistoryManager();
 
             // Use a single AdBlocker shared across all tabs
             var adBlocker = new AdBlocker(_filterEngine, _settingsManager);
@@ -84,7 +87,17 @@ namespace Zabrownie.UI
             {
                 await _settingsManager.LoadAsync();
                 await _bookmarkManager.LoadAsync();
-                ThemeManager.ApplyAccentColor(_settingsManager.Settings.AccentColor);
+                await _historyManager.LoadAsync();
+
+                if (IsIncognito)
+                {
+                    ThemeManager.ApplyAccentColor("#1C1C1E");
+                }
+                else
+                {
+                    ThemeManager.ApplyAccentColor(_settingsManager.Settings.AccentColor);
+                }
+
                 await CreateDefaultFiltersIfNeeded();
 
                 // Load bookmarks bar
@@ -92,19 +105,24 @@ namespace Zabrownie.UI
 
                 // Initialize WebView2 environment FIRST
                 LoggingService.Log("Initializing WebView2 Environment...");
-                var userDataFolder = Path.Combine(
-                    Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                    "Zabrownie", "WebView2Data");
+                string userDataFolder;
+                if (IsIncognito)
+                {
+                    _tempIncognitoFolder = Path.Combine(Path.GetTempPath(), "ZabrownieIncognito_" + Guid.NewGuid().ToString("N"));
+                    userDataFolder = _tempIncognitoFolder;
+                }
+                else
+                {
+                    userDataFolder = Path.Combine(
+                        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                        "Zabrownie", "WebView2Data");
+                }
 
                 LoggingService.Log("Initializing CoreWebView2Environment");
 
-                _webViewEnvironment = await CoreWebView2Environment.CreateAsync(
-                    null, userDataFolder);
+                _webViewEnvironment = await CoreWebView2Environment.CreateAsync(null, userDataFolder);
 
                 LoggingService.Log("WebView2 Environment initialized successfully");
-
-                // Initialize homepage
-                InitializeHomepage();
 
                 // Create initial tab - use "homepage" to show the homepage
                 //await CreateNewTabAsync(_settingsManager.Settings.Homepage ?? "homepage");
@@ -150,21 +168,27 @@ namespace Zabrownie.UI
                 await FileService.SaveTextFileAsync(filtersPath, defaultRules);
             }
 
+            // Download filters if they don't exist
+            await DownloadFiltersIfNeededAsync(filtersDirectory);
+
             // Load all filter lists
             var filterLists = new List<string> { filtersPath };
 
-            // Add EasyList if it exists
-            if (!string.IsNullOrEmpty(filtersDirectory))
+            // Add EasyList if enabled
+            if (_settingsManager.Settings.EnableAdBlocking && !string.IsNullOrEmpty(filtersDirectory))
             {
-                var easyListPath = Path.Combine(filtersDirectory, "easylist.txt");
-                if (File.Exists(easyListPath))
+                var easyListPath = System.IO.Path.Combine(filtersDirectory, "easylist.txt");
+                if (System.IO.File.Exists(easyListPath))
                 {
                     filterLists.Add(easyListPath);
                 }
+            }
 
-                // Add EasyPrivacy if it exists
-                var easyPrivacyPath = Path.Combine(filtersDirectory, "easyprivacy.txt");
-                if (File.Exists(easyPrivacyPath))
+            // Add EasyPrivacy if enabled
+            if (_settingsManager.Settings.EnableTrackerBlocking && !string.IsNullOrEmpty(filtersDirectory))
+            {
+                var easyPrivacyPath = System.IO.Path.Combine(filtersDirectory, "easyprivacy.txt");
+                if (System.IO.File.Exists(easyPrivacyPath))
                 {
                     filterLists.Add(easyPrivacyPath);
                 }
@@ -174,6 +198,38 @@ namespace Zabrownie.UI
             filterLists.AddRange(_settingsManager.Settings.CustomFilterLists);
 
             await _filterEngine.LoadFiltersFromMultipleSourcesAsync(filterLists);
+        }
+
+        private async System.Threading.Tasks.Task DownloadFiltersIfNeededAsync(string? directory)
+        {
+            if (string.IsNullOrEmpty(directory)) return;
+
+            var easyListPath = System.IO.Path.Combine(directory, "easylist.txt");
+            var easyPrivacyPath = System.IO.Path.Combine(directory, "easyprivacy.txt");
+
+            using var client = new System.Net.Http.HttpClient();
+            try
+            {
+                if (!System.IO.File.Exists(easyListPath))
+                {
+                    LoggingService.Log("Downloading EasyList...");
+                    var content = await client.GetStringAsync("https://easylist.to/easylist/easylist.txt");
+                    await FileService.SaveTextFileAsync(easyListPath, content.Split('\n'));
+                    LoggingService.Log("EasyList downloaded successfully.");
+                }
+
+                if (!System.IO.File.Exists(easyPrivacyPath))
+                {
+                    LoggingService.Log("Downloading EasyPrivacy...");
+                    var content = await client.GetStringAsync("https://easylist.to/easylist/easyprivacy.txt");
+                    await FileService.SaveTextFileAsync(easyPrivacyPath, content.Split('\n'));
+                    LoggingService.Log("EasyPrivacy downloaded successfully.");
+                }
+            }
+            catch (Exception ex)
+            {
+                LoggingService.Log($"Error downloading filters: {ex.Message}");
+            }
         }
 
         private async System.Threading.Tasks.Task CreateNewTabAsync(string url = "homepage")
@@ -279,14 +335,16 @@ namespace Zabrownie.UI
                 WebViewContainer.Children.Add(tab.WebView);
 
                 // Update address bar
-                /* if (string.IsNullOrWhiteSpace(tab.Url) || tab.Url == "about:blank" || tab.Url == "homepage")
+                if (string.IsNullOrWhiteSpace(tab.Url) || tab.Url == "about:blank" || tab.Url == "homepage")
                 {
                     AddressBar.Text = "Escribe URL o busca...";
+                    ShowHomepage(true);
                 }
                 else
                 {
                     AddressBar.Text = tab.Url;
-                } */
+                    ShowHomepage(false);
+                }
 
                 UpdateNavigationButtons();
                 UpdateBookmarkButton();
@@ -571,7 +629,7 @@ namespace Zabrownie.UI
             }
         }
 
-        private void WebView_NavigationCompleted(object? sender, CoreWebView2NavigationCompletedEventArgs e,
+        private async void WebView_NavigationCompleted(object? sender, CoreWebView2NavigationCompletedEventArgs e,
             BrowserTab tab, AdBlocker adBlocker)
         {
             tab.IsLoading = false;
@@ -601,10 +659,9 @@ namespace Zabrownie.UI
                 tab.Title = string.IsNullOrEmpty(title) ? "Nueva Pestaña" : title;
                 LoggingService.Log($"Tab title updated: {tab.Title}");
 
-                // Add to recent sites
-                if (e.IsSuccess && !string.IsNullOrEmpty(tab.Url) && tab.Url != "about:blank" && tab.Url != "homepage")
+                if (!IsIncognito && e.IsSuccess && !string.IsNullOrEmpty(tab.Url) && tab.Url != "about:blank" && tab.Url != "homepage")
                 {
-                    AddToRecentSites(tab.Title, tab.Url);
+                    await _historyManager.AddEntryAsync(tab.Title, tab.Url);
                 }
             }
         }
@@ -683,12 +740,9 @@ namespace Zabrownie.UI
                 .Where(b => b.Folder == "Bookmarks Bar")
                 .ToList();
 
-            if (BookmarksBarControl.HasItems)
+            if (_settingsManager.Settings.BookmarksBarShow)
             {
-                if (_settingsManager.Settings.BookmarksBarShow)
-                {
-                    BookmarksBar.Visibility = Visibility.Visible;
-                }
+                BookmarksBar.Visibility = Visibility.Visible;
             }
             else
             {
@@ -707,20 +761,14 @@ namespace Zabrownie.UI
 
         private void ManageBookmarks_Click(object sender, RoutedEventArgs e)
         {
-            var bookmarksWindow = new BookmarksWindow(_bookmarkManager, _settingsManager)
-            {
-                Owner = this
-            };
+            var bookmarksWindow = new BookmarksWindow(_bookmarkManager, _settingsManager);
             bookmarksWindow.ShowDialog();
             UpdateBookmarksBar();
         }
 
         private void SettingsButton_Click(object sender, RoutedEventArgs e)
         {
-            var settingsWindow = new SettingsWindow(_settingsManager, _filterEngine)
-            {
-                Owner = this
-            };
+            var settingsWindow = new SettingsWindow(_settingsManager, _filterEngine);
 
             bool? result = settingsWindow.ShowDialog();
 
@@ -730,9 +778,46 @@ namespace Zabrownie.UI
             }
         }
 
+        private void HistoryButton_Click(object sender, RoutedEventArgs e)
+        {
+            var historyWindow = new HistoryWindow(_historyManager);
+            if (historyWindow.ShowDialog() == true && !string.IsNullOrEmpty(historyWindow.SelectedUrl))
+            {
+                NavigateToUrl(historyWindow.SelectedUrl);
+            }
+        }
+
+        private void IncognitoButton_Click(object sender, RoutedEventArgs e)
+        {
+            var incognitoWindow = new MainWindow(isIncognito: true);
+            incognitoWindow.Show();
+        }
+
         private async void Window_Closing(object? sender, System.ComponentModel.CancelEventArgs e)
         {
             await _settingsManager.SaveAsync();
+            await _bookmarkManager.SaveAsync();
+            await _historyManager.SaveAsync();
+
+            if (IsIncognito && !string.IsNullOrEmpty(_tempIncognitoFolder))
+            {
+                try
+                {
+                    // Clean up temporary WebView2 folder for Incognito mode
+                    System.Threading.Tasks.Task.Run(async () =>
+                    {
+                        await System.Threading.Tasks.Task.Delay(1500);
+                        if (System.IO.Directory.Exists(_tempIncognitoFolder))
+                        {
+                            System.IO.Directory.Delete(_tempIncognitoFolder, true);
+                        }
+                    });
+                }
+                catch (Exception ex)
+                {
+                    LoggingService.Log($"Failed to delete incognito folder: {ex.Message}");
+                }
+            }
             await _bookmarkManager.SaveAsync();
 
             if (_settingsManager.Settings.ClearDataOnClose)
@@ -748,206 +833,27 @@ namespace Zabrownie.UI
 
             _tabManager.CloseAllTabs();
 
-            // Stop the clock timer
-            if (_clockTimer != null)
-            {
-                _clockTimer.Stop();
-            }
+            // Removed clock timer stop since it's hosted in HomepageControl
         }
 
         // ===== HOMEPAGE FUNCTIONALITY =====
 
-        private void InitializeHomepage()
-        {
-            // Setup clock timer
-            _clockTimer = new DispatcherTimer();
-            _clockTimer.Interval = TimeSpan.FromSeconds(1);
-            _clockTimer.Tick += UpdateClock;
-            _clockTimer.Start();
-
-            // Load quick links
-            LoadQuickLinks();
-
-            // Load recent sites
-            LoadRecentSites();
-
-            // Update clock immediately
-            UpdateClock();
-        }
-
-        private void UpdateClock(object? sender = null, EventArgs? e = null) // Made parameters nullable
-        {
-            var now = DateTime.Now;
-            TimeText.Text = now.ToString("HH:mm");
-            DateText.Text = now.ToString("dddd, MMMM dd");
-            DayText.Text = $"Day {now.DayOfYear} of {now.Year}";
-        }
-
-        private void LoadQuickLinks()
-        {
-            // Default quick links - you can load from settings file later
-            _quickLinks = new List<QuickLink>
-            {
-                new QuickLink { Title = "YouTube", Url = "https://youtube.com", Icon = "▶️" },
-                new QuickLink { Title = "Netflix", Url = "https://netflix.com", Icon = "🎬" },
-                new QuickLink { Title = "Spotify", Url = "https://spotify.com", Icon = "🎵" },
-                new QuickLink { Title = "Gmail", Url = "https://gmail.com", Icon = "✉️" },
-                new QuickLink { Title = "GitHub", Url = "https://github.com", Icon = "💻" },
-                new QuickLink { Title = "Reddit", Url = "https://reddit.com", Icon = "📱" },
-            };
-
-            // You can load user-customized links from settings here
-        }
-
-        private void LoadRecentSites()
-        {
-            // Load from saved file or create empty list
-            _recentSites = new List<RecentSite>();
-
-            // Update UI
-            UpdateRecentSitesUI();
-        }
-
-        private void UpdateRecentSitesUI()
-        {
-            RecentSitesControl.ItemsSource = _recentSites
-                .OrderByDescending(r => r.VisitedAt)
-                .Take(5)
-                .ToList();
-
-            NoRecentSitesText.Visibility = _recentSites.Any()
-                ? Visibility.Collapsed
-                : Visibility.Visible;
-        }
-
-        private void AddToRecentSites(string title, string url)
-        {
-            var existing = _recentSites.FirstOrDefault(r => r.Url == url);
-            if (existing != null)
-            {
-                _recentSites.Remove(existing);
-            }
-
-            _recentSites.Add(new RecentSite
-            {
-                Title = string.IsNullOrEmpty(title) ? url : title,
-                Url = url,
-                VisitedAt = DateTime.Now
-            });
-
-            // Keep only last 20 sites
-            if (_recentSites.Count > 20)
-            {
-                _recentSites = _recentSites
-                    .OrderByDescending(r => r.VisitedAt)
-                    .Take(20)
-                    .ToList();
-            }
-
-            UpdateRecentSitesUI();
-        }
-
         private void ShowHomepage(bool show = true)
         {
-            HomepageGrid.Visibility = show ? Visibility.Visible : Visibility.Collapsed;
+            HomepageView.Visibility = show ? Visibility.Visible : Visibility.Collapsed;
             WebViewContainerGrid.Visibility = show ? Visibility.Collapsed : Visibility.Visible;
 
             if (show)
             {
+                HomepageView.LoadRecentSitesFromHistory(_historyManager);
                 AddressBar.Focus();
-                UpdateClock(); // Update time immediately
             }
         }
 
-        // Homepage search box handlers
-        private void HomepageSearchBox_GotFocus(object sender, RoutedEventArgs e)
+        private void HomepageView_NavigateRequested(object sender, string url)
         {
-            if (HomepageSearchBox.Text == "Search or enter address...")
-            {
-                HomepageSearchBox.Text = "";
-                HomepageSearchBox.Foreground = (SolidColorBrush)FindResource("TextPrimary");
-            }
-        }
-
-        private void HomepageSearchBox_LostFocus(object sender, RoutedEventArgs e)
-        {
-            if (string.IsNullOrWhiteSpace(HomepageSearchBox.Text))
-            {
-                HomepageSearchBox.Text = "Search or enter address...";
-                HomepageSearchBox.Foreground = (SolidColorBrush)FindResource("TextSecondary");
-            }
-        }
-
-        private void HomepageSearchBox_KeyDown(object sender, KeyEventArgs e)
-        {
-            if (e.Key == Key.Enter)
-            {
-                NavigateFromHomepage();
-            }
-        }
-
-        private void HomepageSearchButton_Click(object sender, RoutedEventArgs e)
-        {
-            NavigateFromHomepage();
-        }
-
-        private void NavigateFromHomepage()
-        {
-            var url = HomepageSearchBox.Text.Trim();
-            if (string.IsNullOrWhiteSpace(url) || url == "Search or enter address...")
-                return;
-
-            // Hide homepage and navigate
             ShowHomepage(false);
             NavigateToUrl(url);
-        }
-
-        // Quick link click handler
-        private void QuickLink_Click(object sender, RoutedEventArgs e)
-        {
-            if (sender is Button button && button.Tag is string url)
-            {
-                ShowHomepage(false);
-                NavigateToUrl(url);
-            }
-        }
-
-        // Recent site click handler
-        private void RecentSite_Click(object sender, RoutedEventArgs e)
-        {
-            if (sender is Button button && button.Tag is string url)
-            {
-                ShowHomepage(false);
-                NavigateToUrl(url);
-            }
-        }
-
-        // Add custom link (simple implementation)
-        private void AddCustomLink_Click(object sender, RoutedEventArgs e)
-        {
-            var dialog = new CustomLinkWindow();
-            if (dialog.ShowDialog() == true)
-            {
-                // Add the new link
-                _quickLinks.Add(new QuickLink
-                {
-                    Title = dialog.LinkTitle,
-                    Url = dialog.LinkUrl,
-                    Icon = CustomLinkWindow.LinkIcon
-                });
-
-                // For now, just show a message
-                MessageBox.Show($"Added {dialog.LinkTitle} to quick links!",
-                    "Link Added",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Information);
-            }
-        }
-
-        // Home button handler (add this button to your navigation bar)
-        private void HomeButton_Click(object sender, RoutedEventArgs e)
-        {
-            ShowHomepage(true);
         }
 
         // ===== WINDOW DRAG FUNCTIONALITY =====

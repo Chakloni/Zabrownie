@@ -6,6 +6,8 @@
         Background="Transparent"
         AllowsTransparency="True"
         WindowStyle="None"
+        ShowInTaskbar="True"
+        MouseLeftButtonDown="Window_MouseLeftButtonDown"
         ResizeMode="CanResize">
     
     <Window.Resources>

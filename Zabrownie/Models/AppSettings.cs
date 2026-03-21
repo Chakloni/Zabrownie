@@ -6,6 +6,7 @@ namespace Zabrownie.Models
     {
         public string Homepage { get; set; } = "https://www.google.com";
         public bool EnableAdBlocking { get; set; } = true;
+        public bool EnableTrackerBlocking { get; set; } = true;
         public bool EnableJavaScript { get; set; } = true;
         public bool BookmarksBarShow { get; set; } = true;
         public bool BlockThirdPartyCookies { get; set; } = true;

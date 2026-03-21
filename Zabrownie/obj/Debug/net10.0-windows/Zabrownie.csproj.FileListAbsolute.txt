@@ -140,3 +140,5 @@ C:\Users\INFORMATICA\Documents\GitHub\Zabrownie\zabrownie\obj\Debug\net10.0-wind
 C:\Users\INFORMATICA\Documents\GitHub\Zabrownie\zabrownie\obj\Debug\net10.0-windows\Zabrownie.genruntimeconfig.cache
 C:\Users\INFORMATICA\Documents\GitHub\Zabrownie\zabrownie\obj\Debug\net10.0-windows\ref\Zabrownie.dll
 >>>>>>> 284bed9c73d30b29d3a7e13bcfb84de79c70ad8e
+C:\Users\edgar\Documents\palCredito\interfaz\Zabrownie\Zabrownie\obj\Debug\net10.0-windows\UI\HistoryWindow.baml
+C:\Users\edgar\Documents\palCredito\interfaz\Zabrownie\Zabrownie\obj\Debug\net10.0-windows\UI\HistoryWindow.g.cs

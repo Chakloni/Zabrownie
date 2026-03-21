@@ -335,6 +335,43 @@
                 </DataTrigger>
             </Style.Triggers>
         </Style>
+
+        <!-- Estilo elegante para botones de marcadores -->
+        <Style x:Key="BookmarkButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="{StaticResource TextSecondary}"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="10,4"/>
+            <Setter Property="Margin" Value="2,0,2,0"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="ToolTipService.InitialShowDelay" Value="300" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Border"
+                                Background="{TemplateBinding Background}"
+                                CornerRadius="12"
+                                SnapsToDevicePixels="True">
+                            <StackPanel Orientation="Horizontal" Margin="{TemplateBinding Padding}">
+                                <TextBlock Text="★" FontSize="11" Margin="0,0,6,0" VerticalAlignment="Center" Foreground="{DynamicResource AccentColor}" Opacity="0.8"/>
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Border>
+
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Border" Property="Background" Value="{StaticResource BgTertiary}"/>
+                                <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Border" Property="Background" Value="{StaticResource BorderColor}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </Window.Resources>
 
     <!-- Border exterior con sombra -->
@@ -536,6 +573,8 @@
                         <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
 
                     <Button Grid.Column="0"
@@ -604,6 +643,21 @@
                             Margin="0,0,4,0"/>
 
                     <Button Grid.Column="7"
+                            Content="🕒"
+                            FontWeight="Bold"
+                            Style="{StaticResource NavButtonStyle}"
+                            Click="HistoryButton_Click"
+                            ToolTip="Historial de Navegación"
+                            Margin="0,0,4,0"/>
+
+                    <Button Grid.Column="8"
+                            Content="🕵️"
+                            Style="{StaticResource NavButtonStyle}"
+                            Click="IncognitoButton_Click"
+                            ToolTip="Modo Incógnito"
+                            Margin="0,0,4,0"/>
+
+                    <Button Grid.Column="9"
                             Content="⚙"
                             Style="{StaticResource NavButtonStyle}"
                             Click="SettingsButton_Click"
@@ -617,7 +671,7 @@
                     Background="{StaticResource BgSecondary}"
                     BorderBrush="{StaticResource BorderColor}"
                     BorderThickness="0,1,0,0"
-                    Padding="12,8"
+                    Padding="12,4"
                     Visibility="Collapsed">
                 <ScrollViewer
                     Style="{StaticResource OperaGXScrollViewer}"
@@ -634,10 +688,8 @@
                                 <Button Content="{Binding Title}"
                                         Tag="{Binding Url}"
                                         Click="BookmarkBarItem_Click"
-                                        Style="{StaticResource NavButtonStyle}"
-                                        Width="Auto"
-                                        Padding="12,6"
-                                        Margin="0,0,4,0"/>
+                                        ToolTip="{Binding Url}"
+                                        Style="{StaticResource BookmarkButtonStyle}"/>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
